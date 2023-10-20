@@ -12,6 +12,7 @@
  *
  **************************************************************/
 // * burning comment
+// * burning comment 2
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h> // for malloc
