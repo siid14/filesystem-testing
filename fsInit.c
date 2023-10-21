@@ -1,9 +1,9 @@
 /**************************************************************
-* Class:  CSC-415-0# Fall 2021
-* Names: 
-* Student IDs:
+* Class:  CSC-415-01 Fall 2023
+* Names: Ruxue Jin, 
+* Student IDs:923092817,
 * GitHub Name:
-* Group Name:
+* Group Name:Alibaba
 * Project: Basic File System
 *
 * File: fsInit.c
