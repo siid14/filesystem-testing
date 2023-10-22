@@ -92,7 +92,7 @@ int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
     while (bitMap[byteIndex] & mask) // keep searching for the first 0 bit
     {
         bitIndex++;
-        if (bitIndex == 8)
+        if (bitIndex == 7)
         {
             bitIndex = 0;
             byteIndex++;
