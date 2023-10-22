@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "fsLow.h"
+#include "fsFree.h"
 #include "mfs.h"
 #include "DE.h"
 #include "VCB.h"
@@ -37,35 +38,46 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// determin if you need to format the volume of not
 
 	// create a VCB pointer of blockSize and LBAread block 0
-	VCB * blockBuf = malloc(blockSize);
-	LBAread(blockBuf,1,0);
+	vcb = malloc(blockSize);
+	LBAread(vcb,1,0);
 
 
 	// look at the signature to in the VCB struct to see if it matches
 	// if it does not match, we need to initialize it	
-	if(blockBuf->signature != SIGNATURE){
+	if(vcb->signature != SIGNATURE){
 
 		//initialize the values in vcb
-		strcpy(blockBuf ->signature,SIGNATURE);
-		blockBuf->numberOfBlocks = numberOfBlocks;
-		blockBuf->blockSize = blockSize;
-		blockBuf->bitMapLocation = 1;
-		blockBuf->rootDirLocation = 6;
+		strcpy(vcb ->signature,SIGNATURE);
+		vcb->numberOfBlocks = numberOfBlocks;
+		vcb->blockSize = blockSize;
 
 		//initialize free space
+		vcb->bitMapLocation = initFreeSpace(numberOfBlocks, blockSize);
+
+		// return next free block after block 1
+		// or you can use the return value from function that initializes root directory
+		vcb->rootDirLocation = getFreeBlockNum(bitMap,1); 
+
+		
 
 		//initialize root directory
 
 		// write vcb to block 0
-		if (LBAwrite(blockBuf, 1, 0) != 1)
+		if (LBAwrite(vcb, 1, 0) != 1)
 		{
-			printf("[ERROR] LBAwrite() failed...\n");
+			printf("LBAwrite() failed...\n");
 		}
 
 	}
+	else
+	{
+		// TODO: reload in fsFree.c
+		// You can ignore this part for now
+	}
 
-	free(blockBuf);
-	blockBuf = NULL;
+	//free(vcb);
+	//vcb = NULL;
+	//Should we free these in exitFileSystem?
 
 	return 0;
 	}
