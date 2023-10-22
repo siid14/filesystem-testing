@@ -16,11 +16,12 @@
 #include "fsFree.h"
 
 // use value provided in fsInit.c to initialize bitmap
-void initBitmap(uint64_t numberOfBlocks, uint64_t blockSize)
+int initFreeSpace(int blockCount, int bytesPerBlock)
 {
     // number of blocks = number of bits in bitmap
     // 1 byte = 8 bit, calculate the bytes needed for bitmap, ceiling round up
     unsigned int bytesBitmap = (numberOfBlocks + 8 - 1) / 8;
+    vcb->bitMapBytesCount = bytesBitmap;
 
     // calculate the blocks needed for bitmap
     unsigned int blocksBitmap = (bytesBitmap + blockSize - 1) / blockSize;
@@ -31,7 +32,7 @@ void initBitmap(uint64_t numberOfBlocks, uint64_t blockSize)
     bitMap = malloc(blocksBitmap * blockSize);
 
     // Initialize bit map, mark all bits as free
-    for (int i = 0; i < sizeof(bitMap); i++)
+    for (int i = 0; i < bytesBitmap; i++)
     {
         bitMap[i] = 0x00;
     }
@@ -45,16 +46,8 @@ void initBitmap(uint64_t numberOfBlocks, uint64_t blockSize)
     // write bitmap to disk
     LBAwrite(bitMap, blocksBitmap, 1);
 
-    /*
-   TESTING
-
-   Example data 
-   numberOfBlocks: 19531
-   blockSize: 512
-
-   bitMap[0] is "fc", which is 1111 1100 
-   Block 0 is VCB, Block 1 - 5 is bitmap
-   */
+    // return 1, indicating bitMap start at block 1
+    return 1; 
 }
 
 // set the bit corresponding to blockNum to 1 (mark the block as used)
@@ -81,28 +74,33 @@ void setBitFree(unsigned char *bitMap, unsigned int blockNum)
     bitMap[byteIndex] = bitMap[byteIndex] & mask; // set the bit at the specified position to 0
 }
 
-// Find the first free block after blockNum
-int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
+// Check if the bit corresponding to blockNum is used
+// return value: 1 used  0 free
+int isBitUsed(unsigned char *bitMap, unsigned int blockNum)
 {
     unsigned int byteIndex = blockNum / 8;
     unsigned int bitIndex = blockNum % 8;
 
-    unsigned char mask = ~(1 << (7 - bitIndex));
+    unsigned char mask = 1 << (7 - bitIndex);
 
-    while (bitMap[byteIndex] & mask) // keep searching for the first 0 bit
+    return (bitMap[byteIndex] & mask) != 0;
+}
+
+// Find the first free block after blockNum
+int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
+{
+    
+     while (isBitUsed(bitMap, blockNum))
     {
-        bitIndex++;
-        if (bitIndex == 7)
+        // if blockNum exceed the number of blocks in the volume
+        // return -1 to indicate that all blocks are used
+        if (blockNum > vcb->blockCount)
         {
-            bitIndex = 0;
-            byteIndex++;
+            return -1;
         }
 
-        if (byteIndex * 8 >= blockNum) // check if we have searched through all blocks
-        {
-            return -1; // no free block found
-        }
-        mask = 0xFF; // reset the mask to 0xFF (all 1s) to search for any free bit in the next byte
+        blockNum++;
     }
-    return byteIndex * 8 + bitIndex; // calculate the block number of the free block
+
+    return blockNum;
 }

@@ -21,8 +21,14 @@
 // create a char array for bitmap
 unsigned char *bitMap;
 
-// use value provided in fsInit to initializa bitmap
-void initBitmap(uint64_t numberOfBlocks, uint64_t blockSize);
+// initFreeSpace is called when you initialize the volume
+// it returns the block number where the freespace map starts
+int initFreeSpace(int blockCount, int bytesPerBlock);
+
+// if the volume is already initialized you need to call loadFreeSpace
+// so the system has the freespace system ready to use.
+// TODO
+int loadFreeSpace(int blockCount, int bytesPerBlock);
 
 //// Helper functions 
 // set the bit corresponding to blockNum to 1 (mark the block as used)
@@ -31,9 +37,10 @@ void setBitUsed(unsigned char *bitMap, unsigned int blockNum);
 // set the bit corresponding to blockNum to 0 (mark the block as free)
 void setBitFree(unsigned char *bitMap, unsigned int blockNum);
 
+// Check if the bit corresponding to blockNum is used
+// return value: 1 used  0 free
+int isBitUsed(unsigned char *bitMap, unsigned int blockNum);
+
 // Find the first free block after blockNum
 int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum);
 
-// TODO after M1
-// reload bit map from disk
-// file allocation method
