@@ -7,23 +7,28 @@ void setBitFree(unsigned char *bitMap, unsigned int blockNum);
 void initBitmap(int numberOfBlocks, int blockSize);
 int isBitUsed(unsigned char *bitMap, unsigned int blockNum);
 int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum);
+int loadFreeSpace(int blockCount, int bytesPerBlock);
 
 int main()
 {
     // using sample date provide by prof
     // 2442 bytes needed for bit map
     // Num of blocks is 19531, Block 0 - Block 19530
-    initBitmap(19531, 512);
+    int numberOfBlocks = 19531;
+    int blockSize = 512;
+    initBitmap(numberOfBlocks, blockSize);
+
+    // testing loadFreeSpace
+    testLoadFreeSpace(numberOfBlocks, blockSize);
 
     // Testing
     // 1111 1100  Hex: fc
     printf("Init bitmap, the bits at bitMap[0] should be 1111 1100, in hex: %x\n", bitMap[0]);
     int freeBlockNum = getFreeBlockNum(bitMap, 2);
     printf("freeBlockNum: %d\n", freeBlockNum);
-   
 
     // Binary: 1111 1111     Hex: ff
-     setBitUsed(bitMap, 6);
+    setBitUsed(bitMap, 6);
     setBitUsed(bitMap, 7);
     printf("\nthe bits at bitMap[0] should be 1111 1111, in hex: %x\n", bitMap[0]);
     freeBlockNum = getFreeBlockNum(bitMap, 2);
@@ -129,3 +134,45 @@ int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
 
     return blockNum;
 }
+
+int loadFreeSpace(int blockCount, int bytesPerBlock)
+{
+    // calculate the number of bytes needed for the bitmap
+    unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
+
+    // calculate the number of blocks needed for the bitmap
+    unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
+
+    // allocate memory for the bitmap
+    bitMap = malloc(blocksBitmap * bytesPerBlock);
+
+    // read the bitmap from disk (from a specified block)
+    LBAread(bitMap, blocksBitmap, 1);
+
+    return 1; // return 1 to indicate success or handle errors accordingly.
+}
+
+// // function to test loadFreeSpace
+// void testLoadFreeSpace(int numberOfBlocks, int blockSize)
+// {
+//     // simulate writing a bitmap to disk
+//     // file system mechanism -  to save the bitmap to disk
+//     // simulate it by marking some blocks as used and then loading it back
+//     setBitUsed(bitMap, 2);
+//     setBitUsed(bitMap, 3);
+
+//     // simulate saving the bitmap to disk
+//     // file system, - use LBA write
+//     // updatethe bitmap to simulate saving it to disk
+//     // LBAwrite(bitMap, blocksBitmap, 1);
+
+//     // load the free space information from "disk" (simulated by the bitmap)
+//     loadFreeSpace(numberOfBlocks, blockSize);
+
+//     // test if the loaded information matches the previous state
+//     int isUsed = isBitUsed(bitMap, 2);
+//     printf("Block 2 is used: %d\n", isUsed);
+
+//     isUsed = isBitUsed(bitMap, 3);
+//     printf("Block 3 is used: %d\n", isUsed);
+// }

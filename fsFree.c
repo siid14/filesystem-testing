@@ -67,7 +67,7 @@ int loadFreeSpace(int blockCount, int bytesPerBlock)
     // read the bitmap from disk (from a specified block)
     LBAread(bitMap, blocksBitmap, 1);
 
-    return 1; // return 1 to indicate success or handle errors accordingly.
+    return 1; // return 1 to indicate success
 }
 
 // set the bit corresponding to blockNum to 1 (mark the block as used)
