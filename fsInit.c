@@ -71,15 +71,13 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		// * Implemented by Sid but need to be tested
 		loadFreeSpace(numberOfBlocks, blockSize);
 	}
-
-	// free(vcb);
-	// vcb = NULL;
-	// Should we free these in exitFileSystem?
-
 	return 0;
 }
 
 void exitFileSystem()
 {
 	printf("System exiting\n");
+	// TODO: any cleanup - freeing allocated memory - closing files
+	// free(vcb);
+	// vcb = NULL;
 }
