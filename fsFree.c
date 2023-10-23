@@ -47,7 +47,27 @@ int initFreeSpace(int blockCount, int bytesPerBlock)
     LBAwrite(bitMap, blocksBitmap, 1);
 
     // return 1, indicating bitMap start at block 1
-    return 1; 
+    return 1;
+}
+
+// * Implemented by Sid but need to be tested
+// if the volume is already initialized you need to call loadFreeSpace
+// so the system has the freespace system ready to use.
+int loadFreeSpace(int blockCount, int bytesPerBlock)
+{
+    // calculate the number of bytes needed for the bitmap
+    unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
+
+    // calculate the number of blocks needed for the bitmap
+    unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
+
+    // allocate memory for the bitmap
+    bitMap = malloc(blocksBitmap * bytesPerBlock);
+
+    // read the bitmap from disk (from a specified block)
+    LBAread(bitMap, blocksBitmap, 1);
+
+    return 1; // return 1 to indicate success or handle errors accordingly.
 }
 
 // set the bit corresponding to blockNum to 1 (mark the block as used)
@@ -89,8 +109,8 @@ int isBitUsed(unsigned char *bitMap, unsigned int blockNum)
 // Find the first free block after blockNum
 int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
 {
-    
-     while (isBitUsed(bitMap, blockNum))
+
+    while (isBitUsed(bitMap, blockNum))
     {
         // if blockNum exceed the number of blocks in the volume
         // return -1 to indicate that all blocks are used
