@@ -22,13 +22,12 @@
 #include <string.h>
 
 #include "fsLow.h"
-#include "fsFree.h"
 #include "mfs.h"
-#include "DE.h"
 #include "VCB.h"
 
-
 #define SIGNATURE 1234
+
+VCB *vcb;
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
@@ -78,6 +77,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	//free(vcb);
 	//vcb = NULL;
 	//Should we free these in exitFileSystem?
+	//Hoang-Anh: I think we can do directly in initDir()
 
 	return 0;
 	}
@@ -86,4 +86,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 void exitFileSystem ()
 	{
 	printf ("System exiting\n");
+	if (LBAwrite(vcb, 1, 0) != 1)
+		{
+		printf("Error: LBAwrite() failed...\n");
+		}
 	}

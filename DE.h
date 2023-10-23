@@ -18,8 +18,8 @@
 #define MAX_FILENAME_LEN 255 // maximum filename length
 
 // Directory Entry structure
-typedef struct DE
-{
+typedef struct
+  {
   char fileName[MAX_FILENAME_LEN + 1]; // file name cstring, +1 for the NULL
   unsigned long size;    // size of the directory/file in bytes
   unsigned int location; // starting block number of the directory/file
@@ -28,5 +28,4 @@ typedef struct DE
   time_t timeCreated;      // time when the file created
   time_t timeLastModified; // time when the file last modified
   time_t timeLastAccessed; // time when the file last accessed
-
-} DE;
+  } DE;

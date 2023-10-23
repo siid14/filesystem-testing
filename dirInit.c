@@ -45,13 +45,24 @@ int initDir(int initialDirEntries, DE * parent)
     
     DE *directory = malloc(bytesNeeded);
     int startBlock = allocBlock(blocksNeeded);
-
-
     // check error
+    if (startBlock == -1)
+        {
+        printf("Error: allocBlock() failed...\n");
+        free(directory);
+        directory = NULL;
+        return -1;
+        }
 
     // mark every entry as unused
     for (int i = 0; i < actualDirEntries; i++){
         directory[i].filename = '\0';
+        directory[i].size = 0;
+        directory[i].location = 0;
+        directory[i].isDir = 0;
+        directory[i].createTime = 0;
+        directory[i].lastModTime = 0;
+        directory[i].lastAccessTime = 0;
     }
 
     // set the first directory entry points to itself
@@ -88,5 +99,13 @@ int initDir(int initialDirEntries, DE * parent)
     directory[1].timeLastModified = p -> timeLastModified;
 
     
-    return startBlock;
+    int ret = LBAwrite(directory, blocksNeeded, startBlock);
+    //check error
+    if (ret != numOfBlockNeeded)
+        {
+        printf("Error: LBAwrite() returned %d\n", ret);
+        return -1;
+        }
+    free(directory);
+    return (startBlock);
 }
