@@ -20,15 +20,16 @@ int main()
     printf("Init bitmap, the bits at bitMap[0] should be 1111 1100, in hex: %x\n", bitMap[0]);
     int freeBlockNum = getFreeBlockNum(bitMap, 2);
     printf("freeBlockNum: %d\n", freeBlockNum);
-    setBitUsed(bitMap, 6);
-    setBitUsed(bitMap, 7);
+   
 
     // Binary: 1111 1111     Hex: ff
+     setBitUsed(bitMap, 6);
+    setBitUsed(bitMap, 7);
     printf("\nthe bits at bitMap[0] should be 1111 1111, in hex: %x\n", bitMap[0]);
     freeBlockNum = getFreeBlockNum(bitMap, 2);
     printf("freeBlockNum: %d\n", freeBlockNum);
 
-    //  Binary: 1000 0000   Hex: 80
+    // Binary: 1000 0000   Hex: 80
     setBitUsed(bitMap, 8);
     printf("\nthe bits at bitMap[1] should be 1000 0000, in hex: %x\n", bitMap[1]);
     freeBlockNum = getFreeBlockNum(bitMap, 2);
@@ -114,7 +115,7 @@ int isBitUsed(unsigned char *bitMap, unsigned int blockNum)
     return (bitMap[byteIndex] & mask) != 0;
 }
 
-// get next free BLOCK after BLOCK blockNum
+// get next free BLOCK starting from BLOCK blockNum
 int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
 {
     while (isBitUsed(bitMap, blockNum))
