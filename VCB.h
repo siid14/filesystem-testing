@@ -13,8 +13,8 @@
 * 
 *
 **************************************************************/
-typedef struct VCB
-  {
+typedef struct 
+    {
     unsigned int numberOfBlocks;	// Number of blocks in the volume
     unsigned int blockSize;	// Size of each block in bytes
 
@@ -24,6 +24,6 @@ typedef struct VCB
     unsigned int bitMapBytesCount; // the needed bytes for bitMap
 
     unsigned int rootDirLocation;   // starting block num of the root directory
-  } VCB;
+    } VCB;
 
-  VCB * vcb;
+VCB * vcb;
