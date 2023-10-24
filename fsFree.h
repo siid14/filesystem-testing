@@ -1,18 +1,18 @@
 /**************************************************************
-* Class:  CSC-415-01 Fall 2023
-* Names: Sidney Thomas, Hoang-Anh Tran, Ruxue Jin, Yee-Tsing Yang
-* Student IDs: 918656419, 922617784, 923092817, 922359864
-* GitHub Name: siid14, htran31, RuxueJ, Y-Y1Q
-* Group Name: Alibaba
-* Project: Basic File System
-*
-* File: fsFree.h
-*
-* Description: Interface for free space management 
-*
-* 
-*
-**************************************************************/
+ * Class:  CSC-415-01 Fall 2023
+ * Names: Sidney Thomas, Hoang-Anh Tran, Ruxue Jin, Yee-Tsing Yang
+ * Student IDs: 918656419, 922617784, 923092817, 922359864
+ * GitHub Name: siid14, htran31, RuxueJ, Y-Y1Q
+ * Group Name: Alibaba
+ * Project: Basic File System
+ *
+ * File: fsFree.h
+ *
+ * Description: Interface for free space management
+ *
+ *
+ *
+ **************************************************************/
 #include "mfs.h"
 #include "VCB.h"
 #include "DE.h"
@@ -30,7 +30,7 @@ int initFreeSpace(int blockCount, int bytesPerBlock);
 // TODO
 int loadFreeSpace(int blockCount, int bytesPerBlock);
 
-//// Helper functions 
+// * HELPER FUNCTIONS
 // set the bit corresponding to blockNum to 1 (mark the block as used)
 void setBitUsed(unsigned char *bitMap, unsigned int blockNum);
 
@@ -43,4 +43,3 @@ int isBitUsed(unsigned char *bitMap, unsigned int blockNum);
 
 // Find the first free block after blockNum
 int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum);
-
