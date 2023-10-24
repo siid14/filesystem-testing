@@ -6,8 +6,13 @@ void setBitUsed(unsigned int blockNum);
 void setBitFree(unsigned int blockNum);
 void initBitmap(int numberOfBlocks, int blockSize);
 int isBitUsed(unsigned int blockNum);
-int getFreeBlockNum(unsigned int blockNum);
-// int loadFreeSpace(int blockCount, int bytesPerBlock);   // should tested in fsInit.c or via Hexdump
+int getFreeBlockNum();
+int allocBlocksCont(int blocksNeeded);
+// int loadFreeSpace(int blockCount, int bytesPerBlock);
+
+// Any line with LBAread() or LBAwrite() should be commented out or deleted in test c file
+// otherwise, the test c file will have compile errors
+// Test those in fsInit.c or via Hexdump
 
 int main()
 {
@@ -23,38 +28,71 @@ int main()
 
     // Testing
     // 1111 1100  Hex: fc
-    printf("Init  the bits at bitMap[0] should be 1 11111 00, in hex: %x\n", bitMap[0]);
-    int freeBlockNum = getFreeBlockNum(2);
+    printf("Init  the bits at bitMap[0] should be 1111 1100, in hex: %x\n", bitMap[0]);
+    int freeBlockNum = getFreeBlockNum();
     printf("freeBlockNum: %d\n", freeBlockNum);
 
     // Binary: 1111 1111     Hex: ff
     setBitUsed(6);
     setBitUsed(7);
-    printf("\nthe bits at bitMap[0] should be 1 11111 11, in hex: %x\n", bitMap[0]);
-    freeBlockNum = getFreeBlockNum(2);
+    printf("\nthe bits at bitMap[0] should be 1111 1111, in hex: %x\n", bitMap[0]);
+    freeBlockNum = getFreeBlockNum();
     printf("freeBlockNum: %d\n", freeBlockNum);
 
     // Binary: 1000 0000   Hex: 80
     setBitUsed(8);
     printf("\nthe bits at bitMap[1] should be 1000 0000, in hex: %x\n", bitMap[1]);
-    freeBlockNum = getFreeBlockNum(2);
+    freeBlockNum = getFreeBlockNum();
     printf("freeBlockNum: %d\n", freeBlockNum);
 
     // Mark all bits as used, 0xFF = 1111 1111
+    // Total bytes in bitmap: 2442  Total bits in bitmap: 2442 * 8 = 19536
+    // Total Blocks: 19531
+    // Extra bit at last byte of bitmap: 5, ignore 5 bits from right to left
     printf("\nMark all bits used\n");
     for (int i = 0; i < 2442; i++)
     {
         bitMap[i] = 0xFF;
     }
 
-    freeBlockNum = getFreeBlockNum(2);
-    printf("after all bit used, freeBlockNum should return -1: %d\n", freeBlockNum);
+    freeBlockNum = getFreeBlockNum();
+    printf("after all bit used, freeBlockNum should be -1: %d\n", freeBlockNum);
 
     setBitFree(19530);
-    freeBlockNum = getFreeBlockNum(2);
-    printf("\nthe bits at bitMap[2441] should be 1101 1111, in hex: %x\n", bitMap[2441]);
-    printf("last bit(block 19530) free, freeBlockNum: %d\n", freeBlockNum);
+    freeBlockNum = getFreeBlockNum();
+    printf("\nLast bit(block 19530) free, the bits at bitMap[2441] should be 1101 1111, in hex: %x\n", bitMap[2441]);
+    printf("freeBlockNum: %d\n", freeBlockNum);
 
+    // Test allocBlocksCont()
+    printf("\n\nTesting allocBlocksCont(), compare outputs with comments\n");
+    for (int i = 0; i < 2442; i++)
+    {
+        bitMap[i] = 0x00;
+    }
+
+    setBitUsed(0);
+    setBitUsed(1);
+    // bitMap[0]    Binary: 1100 0000    Hex: c0
+
+    int testAlloc = allocBlocksCont(3);
+    // Before   bitMap[0]    Binary: 1100 0000    Hex: c0
+
+    // Allocate 3 blocks
+    // After    bitMap[0]    Binary: 1111 1000    Hex: f8     start block: 2
+    printf("Hex at bitMap[0]: %x\n", bitMap[0]);
+    printf("start block: %d\n", testAlloc);
+
+    testAlloc = allocBlocksCont(6);
+    // Before       bitMap[0]    Binary: 1111 1000    Hex: f8
+
+    // Allocate 6 blocks
+    // After        bitMap[0]    Binary: 1111 1111    Hex: ff     start block: 5
+    // After        bitMap[1]    Binary: 1110 0000    Hex: e0
+    printf("\nHex at bitMap[0]: %x\n", bitMap[0]);
+    printf("Hex at bitMap[1]: %x\n", bitMap[1]);
+    printf("start block: %d\n", testAlloc);
+
+    printf("\n\n");
     return 0;
 }
 
@@ -121,18 +159,64 @@ int isBitUsed(unsigned int blockNum)
 }
 
 // get next free BLOCK starting from BLOCK blockNum
-int getFreeBlockNum(unsigned int blockNum)
+int getFreeBlockNum()
 {
-    while (isBitUsed(blockNum))
+    int blockNum = 0;
+    for (int i = 0; i < 2442; i++)
     {
-        if (blockNum > LAST_BLOCKNUM)
+        if (bitMap[i] == 0xFF)
         {
-            return -1;
+            blockNum += 8;
         }
-        blockNum++;
+        else
+        {
+            while (isBitUsed(blockNum))
+            {
+                blockNum++;
+            }
+        }
+    }
+
+    if (blockNum > LAST_BLOCKNUM)
+    {
+        return -1;
     }
 
     return blockNum;
+}
+
+int allocBlocksCont(int blocksNeeded)
+{
+    int startBlockNum = getFreeBlockNum();
+    int countBlocksCont = 0; // to track how many contiguous free blocks
+
+    // Check if there are enough free blocks for cont. allocation
+    for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
+    {
+        if (isBitUsed(i) == 0)
+        {
+            countBlocksCont++;
+        }
+    }
+
+    // Enough contiguous free blocks
+    if (countBlocksCont == blocksNeeded)
+    {
+        // Mark the bits corresponding to blockNum as used
+        for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
+        {
+            setBitUsed(i);
+        }
+        // LBAwrite lines deleted
+        // should be tested via hexdump
+
+        return startBlockNum;
+    }
+    else
+    {
+        printf("\nNot enough free blocks to allocate contiguously\n");
+        return -1;
+    }
 }
 
 // int loadFreeSpace(int blockCount, int bytesPerBlock)
