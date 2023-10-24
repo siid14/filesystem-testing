@@ -7,7 +7,7 @@ void setBitFree(unsigned char *bitMap, unsigned int blockNum);
 void initBitmap(int numberOfBlocks, int blockSize);
 int isBitUsed(unsigned char *bitMap, unsigned int blockNum);
 int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum);
-int loadFreeSpace(int blockCount, int bytesPerBlock);
+//int loadFreeSpace(int blockCount, int bytesPerBlock);   // should tested in fsInit.c or via Hexdump
 
 int main()
 {
@@ -19,18 +19,18 @@ int main()
     initBitmap(numberOfBlocks, blockSize);
 
     // testing loadFreeSpace
-    testLoadFreeSpace(numberOfBlocks, blockSize);
+    //testLoadFreeSpace(numberOfBlocks, blockSize);
 
     // Testing
     // 1111 1100  Hex: fc
-    printf("Init bitmap, the bits at bitMap[0] should be 1111 1100, in hex: %x\n", bitMap[0]);
+    printf("Init bitmap, the bits at bitMap[0] should be 1 11111 00, in hex: %x\n", bitMap[0]);
     int freeBlockNum = getFreeBlockNum(bitMap, 2);
     printf("freeBlockNum: %d\n", freeBlockNum);
 
     // Binary: 1111 1111     Hex: ff
     setBitUsed(bitMap, 6);
     setBitUsed(bitMap, 7);
-    printf("\nthe bits at bitMap[0] should be 1111 1111, in hex: %x\n", bitMap[0]);
+    printf("\nthe bits at bitMap[0] should be 1 11111 11, in hex: %x\n", bitMap[0]);
     freeBlockNum = getFreeBlockNum(bitMap, 2);
     printf("freeBlockNum: %d\n", freeBlockNum);
 
@@ -135,22 +135,22 @@ int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
     return blockNum;
 }
 
-int loadFreeSpace(int blockCount, int bytesPerBlock)
-{
-    // calculate the number of bytes needed for the bitmap
-    unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
+// int loadFreeSpace(int blockCount, int bytesPerBlock)
+// {
+//     // calculate the number of bytes needed for the bitmap
+//     unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
 
-    // calculate the number of blocks needed for the bitmap
-    unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
+//     // calculate the number of blocks needed for the bitmap
+//     unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
 
-    // allocate memory for the bitmap
-    bitMap = malloc(blocksBitmap * bytesPerBlock);
+//     // allocate memory for the bitmap
+//     bitMap = malloc(blocksBitmap * bytesPerBlock);
 
-    // read the bitmap from disk (from a specified block)
-    LBAread(bitMap, blocksBitmap, 1);
+//     // read the bitmap from disk (from a specified block)
+//     LBAread(bitMap, blocksBitmap, 1);
 
-    return 1; // return 1 to indicate success or handle errors accordingly.
-}
+//     return 1; // return 1 to indicate success or handle errors accordingly.
+// }
 
 // // function to test loadFreeSpace
 // void testLoadFreeSpace(int numberOfBlocks, int blockSize)
