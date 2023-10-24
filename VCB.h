@@ -21,7 +21,7 @@ typedef struct
     unsigned long signature;	// Signature for VCB struct
 
     unsigned int bitMapLocation;	// starting block num of bitMap
-    unsigned int bitMapBytesCount; // the needed bytes for bitMap
+    unsigned int bitMapSize;        // size of bitMap in bytes 
 
     unsigned int rootDirLocation;   // starting block num of the root directory
     } VCB;
