@@ -16,22 +16,26 @@
 #include "fsFree.h"
 
 // use value provided in fsInit.c to initialize bitmap
-void initBitmap(uint64_t numberOfBlocks, uint64_t blockSize)
+int initFreeSpace(int blockCount, int bytesPerBlock)
 {
     // number of blocks = number of bits in bitmap
     // 1 byte = 8 bit, calculate the bytes needed for bitmap, ceiling round up
-    unsigned int bytesBitmap = (numberOfBlocks + 8 - 1) / 8;
+    unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
+
+    // store the needed bytes of Bitmap in VCB, since malloc may give extra bytes
+    vcb->bitMapSizeBytes = bytesBitmap;
 
     // calculate the blocks needed for bitmap
-    unsigned int blocksBitmap = (bytesBitmap + blockSize - 1) / blockSize;
+    unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
+    vcb->bitMapSizeBlocks = blocksBitmap;
 
     // blocks used by VCB and bit map during initialization
     unsigned int blocksInitUsed = blocksBitmap + 1;
 
-    bitMap = malloc(blocksBitmap * blockSize);
+    bitMap = malloc(blocksBitmap * bytesPerBlock);
 
     // Initialize bit map, mark all bits as free
-    for (int i = 0; i < sizeof(bitMap); i++)
+    for (int i = 0; i < bytesBitmap; i++)
     {
         bitMap[i] = 0x00;
     }
@@ -39,26 +43,49 @@ void initBitmap(uint64_t numberOfBlocks, uint64_t blockSize)
     // Set the block 0 (VCB) and blocks occupied by bitmap as used
     for (int i = 0; i < blocksInitUsed; i++)
     {
-        setBitUsed(bitMap, i);
+        setBitUsed(i);
     }
 
     // write bitmap to disk
-    LBAwrite(bitMap, blocksBitmap, 1);
+    int checkVal = LBAwrite(bitMap, blocksBitmap, 1);
 
-    /*
-   TESTING
+    if (checkVal != blocksBitmap)
+    {
+        printf("\nLBAwrite() failed in initFreeSpace()\n");
+        return -1;
+    }
 
-   Example data 
-   numberOfBlocks: 19531
-   blockSize: 512
+    // return 1, indicating bitMap starts at block 1
+    return 1;
+}
 
-   bitMap[0] is "fc", which is 1111 1100 
-   Block 0 is VCB, Block 1 - 5 is bitmap
-   */
+// * Implemented by Sid but need to be tested
+// if the volume is already initialized you need to call loadFreeSpace
+// so the system has the freespace system ready to use.
+int loadFreeSpace(int blockCount, int bytesPerBlock)
+{
+    // calculate the number of bytes needed for the bitmap
+    unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
+
+    // calculate the number of blocks needed for the bitmap
+    unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
+
+    // allocate memory for the bitmap
+    bitMap = malloc(blocksBitmap * bytesPerBlock);
+
+    // read the bitmap from disk (from a specified block)
+    int checkVal = LBAread(bitMap, blocksBitmap, 1);
+    if (checkVal != blocksBitmap)
+    {
+        printf("\nLBAread() failed in loadFreeSpace()\n");
+        return -1
+    }
+
+    return 1; // return 1 to indicate success
 }
 
 // set the bit corresponding to blockNum to 1 (mark the block as used)
-void setBitUsed(unsigned char *bitMap, unsigned int blockNum)
+void setBitUsed(unsigned int blockNum)
 {
     unsigned int byteIndex = blockNum / 8; // calculate the byte index in the bitmap
     unsigned int bitIndex = blockNum % 8;  // calculate the bit index within the byte
@@ -70,7 +97,7 @@ void setBitUsed(unsigned char *bitMap, unsigned int blockNum)
 }
 
 // set the bit corresponding to blockNum to 0 (mark the block as free)
-void setBitFree(unsigned char *bitMap, unsigned int blockNum)
+void setBitFree(unsigned int blockNum)
 {
     unsigned int byteIndex = blockNum / 8;
     unsigned int bitIndex = blockNum % 8;
@@ -81,28 +108,96 @@ void setBitFree(unsigned char *bitMap, unsigned int blockNum)
     bitMap[byteIndex] = bitMap[byteIndex] & mask; // set the bit at the specified position to 0
 }
 
-// Find the first free block after blockNum
-int getFreeBlockNum(unsigned char *bitMap, unsigned int blockNum)
+// Check if the bit corresponding to blockNum is used
+// return value: 1 used  0 free
+int isBitUsed(unsigned int blockNum)
 {
     unsigned int byteIndex = blockNum / 8;
     unsigned int bitIndex = blockNum % 8;
 
-    unsigned char mask = ~(1 << (7 - bitIndex));
+    unsigned char mask = 1 << (7 - bitIndex);
 
-    while (bitMap[byteIndex] & mask) // keep searching for the first 0 bit
+    return (bitMap[byteIndex] & mask) != 0;
+}
+
+// Find the first free block
+int getFreeBlockNum()
+{
+    // track the blockNum corresponding to bit in bitMap
+    int blockNum = 0;
+
+    // Iterate over each byte in bitmap
+    for (int i = 0; i < vcb->bitMapSizeBytes; i++)
     {
-        bitIndex++;
-        if (bitIndex == 8)
+        // all 8 bits in current byte are used 0xFF = 1111 1111
+        // Increase blockNum, continue loop to check next byte
+        if (bitMap[i] == 0xFF)
         {
-            bitIndex = 0;
-            byteIndex++;
+            blockNum += 8;
+        }
+        // Not all bits in current byte are used, check for first free bit
+        else
+        {
+            while (isBitUsed(blockNum))
+            {
+                blockNum++;
+            }
+            break;
+        }
+    }
+
+    // the last byte may have extra bit
+    // use the last blockNum to check if blockNum is over limit
+    // Last blockNum is numberOfBlocks - 1
+    if (blockNum > vcb->numberOfBlocks - 1)
+    {
+        printf("\nAll blocks in use\n");
+        return -1;
+    }
+
+    return blockNum;
+}
+
+// Take amount of blocks needed and allocate
+// return the starting blockNum,
+// return -1 if free blocks are not enough, or failed to write updated bitmap to disk
+int allocBlocksCont(int blocksNeeded)
+{
+    int startBlockNum = getFreeBlockNum();
+    int countBlocksCont = 0; // to track how many contiguous free blocks
+
+    // Check if there are enough free blocks for cont. allocation
+    for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
+    {
+        if (isBitUsed(i) == 0)
+        {
+            countBlocksCont++;
+        }
+    }
+
+    // Enough contiguous free blocks
+    if (countBlocksCont == blocksNeeded)
+    {
+        // Mark the bits corresponding to blockNum as used
+        for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
+        {
+            setBitUsed(i);
         }
 
-        if (byteIndex * 8 >= blockNum) // check if we have searched through all blocks
+        // write the updated bitmap to disk, and check error
+        int checkVal = LBAwrite(bitMap, vcb->bitMapSizeBlocks, 1);
+
+        if (checkVal != vcb->bitMapSizeBlocks)
         {
-            return -1; // no free block found
+            printf("\nLBAwrite() failed in allocBlocksCont()\n");
+            return -1;
         }
-        mask = 0xFF; // reset the mask to 0xFF (all 1s) to search for any free bit in the next byte
+
+        return startBlockNum;
     }
-    return byteIndex * 8 + bitIndex; // calculate the block number of the free block
+    else
+    {
+        printf("\nNot enough free blocks to allocate contiguously\n");
+        return -1;
+    }
 }

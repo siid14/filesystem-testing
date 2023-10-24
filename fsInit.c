@@ -1,8 +1,8 @@
 /**************************************************************
 * Class:  CSC-415-01 Fall 2023
-* Names: Ruxue Jin, 
-* Student IDs:923092817,
-* GitHub Name:
+* Names: Sidney Thomas, Hoang-Anh Tran, Ruxue Jin, Yee-Tsing Yang
+* Student IDs: 918656419, 922617784, 923092817, 922359864
+* GitHub Name: siid14, htran31, RuxueJ, Y-Y1Q
 * Group Name:Alibaba
 * Project: Basic File System
 *
@@ -25,8 +25,11 @@
 #include "mfs.h"
 #include "DE.h"
 #include "VCB.h"
+#include "fsDir.h"
+#include "fsFree.h"
 
-
+// initial number of directory entries in each directory
+#define initialDirEntries 50
 #define SIGNATURE 1234
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
@@ -49,12 +52,12 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		strcpy(blockBuf ->signature,SIGNATURE);
 		blockBuf->numberOfBlocks = numberOfBlocks;
 		blockBuf->blockSize = blockSize;
-		blockBuf->bitMapLocation = 1;
-		blockBuf->rootDirLocation = 6;
 
 		//initialize free space
-
+		blockBuf->bitMapLocation = initFreeSpace(numberOfBlocks,blockSize);
+		
 		//initialize root directory
+		blockBuf->rootDirLocation = initDir(initialDirEntries, NULL, blockSize);
 
 		// write vcb to block 0
 		if (LBAwrite(blockBuf, 1, 0) != 1)
