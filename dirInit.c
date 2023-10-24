@@ -27,7 +27,7 @@
 // the second parameter is the pointer to its parent directory entry.
 // for root directory, the parent should be null.
 
-int initDir(int initialDirEntries, DE * parent)
+int initDir(int initialDirEntries, DE * parent, int blockSize)
 {
 
     // printf("\n--------- INSIDE THE initDir function ---------\n");
