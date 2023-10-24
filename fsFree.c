@@ -129,19 +129,20 @@ int getFreeBlockNum()
     // Iterate over each byte in bitmap
     for (int i = 0; i < vcb->bitMapSizeBytes; i++)
     {
-        // all 8 bits in the byte are used
-        // set blockNum to the first bit of next byte
+        // all 8 bits in current byte are used 0xFF = 1111 1111
+        // Increase blockNum, continue loop to check next byte
         if (bitMap[i] == 0xFF)
         {
             blockNum += 8;
         }
-        // Not all bits in the byte are used, check each bit
+        // Not all bits in current byte are used, check for first free bit
         else
         {
             while (isBitUsed(blockNum))
             {
                 blockNum++;
             }
+            break;
         }
     }
 
@@ -162,7 +163,7 @@ int getFreeBlockNum()
 // return -1 if free blocks are not enough, or failed to write updated bitmap to disk
 int allocBlocksCont(int blocksNeeded)
 {
-    int startBlockNum = getFreeBlockNum(1);
+    int startBlockNum = getFreeBlockNum();
     int countBlocksCont = 0; // to track how many contiguous free blocks
 
     // Check if there are enough free blocks for cont. allocation
@@ -183,7 +184,7 @@ int allocBlocksCont(int blocksNeeded)
             setBitUsed(i);
         }
 
-        // write the updated bitmap to disk
+        // write the updated bitmap to disk, and check error
         int checkVal = LBAwrite(bitMap, vcb->bitMapSizeBlocks, 1);
 
         if (checkVal != vcb->bitMapSizeBlocks)

@@ -174,6 +174,7 @@ int getFreeBlockNum()
             {
                 blockNum++;
             }
+            break;
         }
     }
 
