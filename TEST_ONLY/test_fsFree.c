@@ -11,6 +11,7 @@ int allocBlocksCont(int blocksNeeded);
 // int loadFreeSpace(int blockCount, int bytesPerBlock);
 
 // test 1
+// test FS free
 
 // Any line with LBAread() or LBAwrite() should be commented out or deleted in test c file
 // otherwise, the test c file will have compile errors
