@@ -12,15 +12,14 @@
  *
  **************************************************************/
 
-#include "fsDir.h"
 #include "fsLow.h"
 #include "mfs.h"
 #include "fsDir.h"
+#include "fsFree.h"
+#include "DE.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -28,7 +27,7 @@
 // the second parameter is the pointer to its parent directory entry.
 // for root directory, the parent should be null.
 
-int initDir(int initialDirEntries, DE * parent, int blockSize)
+int initDir(int initialDirEntries, DE *parent, int blockSize)
 {
 
     // printf("\n--------- INSIDE THE initDir function ---------\n");
@@ -44,11 +43,19 @@ int initDir(int initialDirEntries, DE * parent, int blockSize)
     int actualDirEntries = blocksNeeded / sizeof(DE);
 
     DE *directory = malloc(bytesNeeded);
-    int startBlock = allocBlock(blocksNeeded);
+    if (directory == NULL)
+    {
+        printf("Error: malloc() failed in fsDir.c\n");
+        free(directory);
+        directory = NULL;
+        return -1;
+    }
+
+    int startBlock = allocBlocksCont(blocksNeeded);
     // check error
     if (startBlock == -1)
     {
-        printf("Error: allocBlock() failed...\n");
+        printf("Error: allocBlocksCont() failed in fsDir.c\n");
         free(directory);
         directory = NULL;
         return -1;
@@ -57,13 +64,13 @@ int initDir(int initialDirEntries, DE * parent, int blockSize)
     // mark every entry as unused
     for (int i = 0; i < actualDirEntries; i++)
     {
-        directory[i].filename = '\0';
+        strcpy(directory[0].fileName, "\0");
         directory[i].size = 0;
         directory[i].location = 0;
         directory[i].isDir = 0;
-        directory[i].createTime = 0;
-        directory[i].lastModTime = 0;
-        directory[i].lastAccessTime = 0;
+        directory[i].timeCreated = 0;
+        directory[i].timeLastModified = 0;
+        directory[i].timeLastModified = 0;
     }
 
     // set the first directory entry points to itself
@@ -72,14 +79,14 @@ int initDir(int initialDirEntries, DE * parent, int blockSize)
     directory[0].location = startBlock;
     directory[0].isDir = 1;
 
-    time_t t = time();
+    time_t t = time(NULL);
     directory[0].timeCreated = t;
     directory[0].timeLastModified = t;
     directory[0].timeLastAccessed = t;
 
     // check if the directory is root directory
-    // if it is root directory, set the second directory entry to itself
-    // otherwise, set the second directory entru to its parent
+    // if it is root directory, set the first directory entry to itself
+    // otherwise, set the second directory entry to its parent
 
     DE *p;
     if (parent != NULL)
@@ -103,11 +110,12 @@ int initDir(int initialDirEntries, DE * parent, int blockSize)
 
     int ret = LBAwrite(directory, blocksNeeded, startBlock);
     // check error
-    if (ret != numOfBlockNeeded)
+    if (ret != blocksNeeded)
     {
-        printf("Error: LBAwrite() returned %d\n", ret);
+        printf("Error: LBAwrite() returned %d in fsDir.c\n", ret);
         return -1;
     }
     free(directory);
+    directory = NULL;
     return (startBlock);
 }
