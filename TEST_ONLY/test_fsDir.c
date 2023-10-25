@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define blockSize 512   // For TEST ONLY, can take as parameter or use the value from VCB
+#define blockSize 512 // For TEST ONLY, can take as parameter or use the value from VCB
 
 #define MAX_FILENAME_LEN 255 // maximum filename length
 
@@ -18,8 +18,6 @@ typedef struct
     time_t timeLastModified; // time when the file last modified
     time_t timeLastAccessed; // time when the file last accessed
 } DE;
-
-
 
 int initDir(int initialDirEntries, DE *parent);
 
@@ -68,9 +66,9 @@ int initDir(int initialDirEntries, DE *parent)
         directory[i].size = 0;
         directory[i].location = 0;
         directory[i].isDir = 0;
-        // directory[i].createTime= 0;
-        // directory[i].lastModTime = 0;
-        // directory[i].lastAccessTime = 0;
+        directory[i].timeCreated = 0;
+        directory[i].timeLastModified = 0;
+        directory[i].timeLastModified = 0;
     }
 
     // set the first directory entry points to itself
@@ -87,6 +85,9 @@ int initDir(int initialDirEntries, DE *parent)
     printf("\n");
     printf("Entry at directory[0]\n");
     printf("Filename: %s\n", directory[0].fileName);
+    printf("Time created: %s\n", ctime(&directory[0].timeCreated));
+    printf("Time Last Modified: %s\n", ctime(&directory[0].timeLastModified));
+    printf("Time Last Accessed: %s\n", ctime(&directory[0].timeLastAccessed));
     printf("\n");
 
     // check if the directory is root directory
@@ -109,11 +110,10 @@ int initDir(int initialDirEntries, DE *parent)
     directory[1].location = p->location;
     directory[1].isDir = p->isDir;
 
-    // directory[1].timeCreated = p->timeCreated;
-    // directory[1].timeLastModified = p->timeLastModified;
-    // directory[1].timeLastModified = p->timeLastModified;
+    directory[1].timeCreated = p->timeCreated;
+    directory[1].timeLastModified = p->timeLastModified;
+    directory[1].timeLastModified = p->timeLastModified;
 
-    
     printf("\n");
     printf("Entry at directory[1]\n");
     printf("Filename: %s\n", directory[1].fileName);
