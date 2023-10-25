@@ -14,8 +14,6 @@
  *
  **************************************************************/
 #include "mfs.h"
-#include "VCB.h"
-#include "DE.h"
 #include "fsLow.h"
 
 // create a global char array for bitmap
