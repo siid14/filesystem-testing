@@ -49,12 +49,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
         return -1;
     }
 
-    printf("\nIn initDir, Before blocks allocation\n");
-
     int startBlock = allocBlocksCont(blocksNeeded);
-
-    printf("\n startBlock: %d", startBlock);
-    printf("\nIn initDir, After blocks allocation\n");
 
     // check error
     if (startBlock == -1)

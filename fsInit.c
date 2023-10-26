@@ -61,6 +61,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 		// initialize free space
 		vcb->bitMapLocation = initFreeSpace(numberOfBlocks, blockSize);
+		printf("\n--- OUTSIDE initFreeSpace() ---\n");
 		printf("vcb->bitMapLocation: %d\n\n", vcb->bitMapLocation);
 		printf("After init free space \n");
 		printf("bitMap[0]: %x\n", bitMap[0]);
@@ -70,9 +71,11 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 		// initialize root directory
 		vcb->rootDirLocation = initDir(initialDirEntries, NULL, blockSize);
+		printf("\n--------- OUTSIDE THE initDir function ---------\n");
 		printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
+		printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
 
-		// write vcb to block 0
+		write vcb to block 0
 		if (LBAwrite(vcb, 1, 0) != 1)
 		{
 			printf("In fsInit.c:  LBAwrite() failed on vcb\n");
@@ -82,10 +85,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	else
 	{
 
-		int testGetFreeBlock = getFreeBlockNum();
-		printf("testGetFreeBlock: %d\n", testGetFreeBlock);
-
-		printf("\nSignature found,  start reloading\n\n");
+		printf("\nSignature found,  reloading free space\n\n");
 		vcb->bitMapLocation = loadFreeSpace(numberOfBlocks, blockSize);
 	}
 

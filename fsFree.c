@@ -27,6 +27,7 @@ int bitMapSizeBits;
 // use value provided in fsInit.c to initialize bitmap
 int initFreeSpace(int blockCount, int bytesPerBlock)
 {
+    printf("\n--- INSIDE initFreeSpace() ---\n");
     bitMapSizeBits = blockCount;
     // number of blocks = number of bits in bitmap
     // 1 byte = 8 bit, calculate the bytes needed for  ceiling round up
@@ -47,21 +48,18 @@ int initFreeSpace(int blockCount, int bytesPerBlock)
     printf("bitMapBytesMalloc: %d\n\n", bitMapBytesMalloc);
     bitMap = malloc(bitMapBytesMalloc);
 
-    // Initialize bit map, mark all bits as free
+    // Initialize bit map
+    // mark all bits at each byte free (0000 0000)
     for (int i = 0; i < bitMapSizeBytes; i++)
     {
         bitMap[i] = 0x00;
     }
-    printf("bitMap[0]: %x\n", bitMap[0]);
-    printf("bitMap[1]: %x\n", bitMap[1]);
-    printf("bitMap[2441]: %x\n\n", bitMap[2441]);
 
     // Set the block 0 (VCB) and blocks occupied by bitmap as used
     for (int i = 0; i < blocksInitUsed; i++)
     {
         setBitUsed(i);
     }
-
 
     // write bitmap to disk
     int checkVal = LBAwrite(bitMap, blocksBitmap, 1);
@@ -183,9 +181,9 @@ int getFreeBlockNum()
 // return -1 if free blocks are not enough, or failed to write updated bitmap to disk
 int allocBlocksCont(int blocksNeeded)
 {
-    printf("Begin Block alloc\n");
+
     int startBlockNum = getFreeBlockNum(bitMap);
-    printf("\n startBlockNum: %d", startBlockNum);
+
     int countBlocksCont = 0; // to track how many contiguous free blocks
 
     // Check if there are enough free blocks for cont. allocation
