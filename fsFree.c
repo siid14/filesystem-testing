@@ -13,21 +13,30 @@
  *
  *
  **************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "fsFree.h"
+#include "fsLow.h"
+
+int bitMapSizeBlocks;
+int bitMapSizeBytes;
+int bitMapSizeBits;
 
 // use value provided in fsInit.c to initialize bitmap
-int initFreeSpace(int blockCount, int bytesPerBlock)
+int initFreeSpace(unsigned char *bitMap, int blockCount, int bytesPerBlock)
 {
+    bitMapSizeBits = blockCount;
     // number of blocks = number of bits in bitmap
     // 1 byte = 8 bit, calculate the bytes needed for bitmap, ceiling round up
     unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
 
     // store the needed bytes of Bitmap in VCB, since malloc may give extra bytes
-    vcb->bitMapSizeBytes = bytesBitmap;
+    bitMapSizeBytes = bytesBitmap;
 
     // calculate the blocks needed for bitmap
     unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
-    vcb->bitMapSizeBlocks = blocksBitmap;
+    bitMapSizeBlocks = blocksBitmap;
 
     // blocks used by VCB and bit map during initialization
     unsigned int blocksInitUsed = blocksBitmap + 1;
@@ -43,7 +52,7 @@ int initFreeSpace(int blockCount, int bytesPerBlock)
     // Set the block 0 (VCB) and blocks occupied by bitmap as used
     for (int i = 0; i < blocksInitUsed; i++)
     {
-        setBitUsed(i);
+        setBitUsed(bitMap, i);
     }
 
     // write bitmap to disk
@@ -62,13 +71,16 @@ int initFreeSpace(int blockCount, int bytesPerBlock)
 // * Implemented by Sid but need to be tested
 // if the volume is already initialized you need to call loadFreeSpace
 // so the system has the freespace system ready to use.
-int loadFreeSpace(int blockCount, int bytesPerBlock)
+int loadFreeSpace(unsigned char *bitMap, int blockCount, int bytesPerBlock)
 {
+    bitMapSizeBits = blockCount;
     // calculate the number of bytes needed for the bitmap
     unsigned int bytesBitmap = (blockCount + 8 - 1) / 8;
+    bitMapSizeBytes = bytesBitmap;
 
     // calculate the number of blocks needed for the bitmap
     unsigned int blocksBitmap = (bytesBitmap + bytesPerBlock - 1) / bytesPerBlock;
+    bitMapSizeBlocks = blocksBitmap;
 
     // allocate memory for the bitmap
     bitMap = malloc(blocksBitmap * bytesPerBlock);
@@ -78,14 +90,14 @@ int loadFreeSpace(int blockCount, int bytesPerBlock)
     if (checkVal != blocksBitmap)
     {
         printf("\nLBAread() failed in loadFreeSpace()\n");
-        return -1
+        return -1;
     }
 
     return 1; // return 1 to indicate success
 }
 
 // set the bit corresponding to blockNum to 1 (mark the block as used)
-void setBitUsed(unsigned int blockNum)
+void setBitUsed(unsigned char *bitMap, unsigned int blockNum)
 {
     unsigned int byteIndex = blockNum / 8; // calculate the byte index in the bitmap
     unsigned int bitIndex = blockNum % 8;  // calculate the bit index within the byte
@@ -97,7 +109,7 @@ void setBitUsed(unsigned int blockNum)
 }
 
 // set the bit corresponding to blockNum to 0 (mark the block as free)
-void setBitFree(unsigned int blockNum)
+void setBitFree(unsigned char *bitMap, unsigned int blockNum)
 {
     unsigned int byteIndex = blockNum / 8;
     unsigned int bitIndex = blockNum % 8;
@@ -110,7 +122,7 @@ void setBitFree(unsigned int blockNum)
 
 // Check if the bit corresponding to blockNum is used
 // return value: 1 used  0 free
-int isBitUsed(unsigned int blockNum)
+int isBitUsed(unsigned char *bitMap, unsigned int blockNum)
 {
     unsigned int byteIndex = blockNum / 8;
     unsigned int bitIndex = blockNum % 8;
@@ -121,13 +133,13 @@ int isBitUsed(unsigned int blockNum)
 }
 
 // Find the first free block
-int getFreeBlockNum()
+int getFreeBlockNum(unsigned char *bitMap)
 {
     // track the blockNum corresponding to bit in bitMap
     int blockNum = 0;
 
     // Iterate over each byte in bitmap
-    for (int i = 0; i < vcb->bitMapSizeBytes; i++)
+    for (int i = 0; i < bitMapSizeBytes; i++)
     {
         // all 8 bits in current byte are used 0xFF = 1111 1111
         // Increase blockNum, continue loop to check next byte
@@ -138,7 +150,7 @@ int getFreeBlockNum()
         // Not all bits in current byte are used, check for first free bit
         else
         {
-            while (isBitUsed(blockNum))
+            while (isBitUsed(bitMap, blockNum))
             {
                 blockNum++;
             }
@@ -149,7 +161,7 @@ int getFreeBlockNum()
     // the last byte may have extra bit
     // use the last blockNum to check if blockNum is over limit
     // Last blockNum is numberOfBlocks - 1
-    if (blockNum > vcb->numberOfBlocks - 1)
+    if (blockNum > bitMapSizeBits - 1)
     {
         printf("\nAll blocks in use\n");
         return -1;
@@ -161,15 +173,15 @@ int getFreeBlockNum()
 // Take amount of blocks needed and allocate
 // return the starting blockNum,
 // return -1 if free blocks are not enough, or failed to write updated bitmap to disk
-int allocBlocksCont(int blocksNeeded)
+int allocBlocksCont(unsigned char *bitMap, int blocksNeeded)
 {
-    int startBlockNum = getFreeBlockNum();
+    int startBlockNum = getFreeBlockNum(bitMap);
     int countBlocksCont = 0; // to track how many contiguous free blocks
 
     // Check if there are enough free blocks for cont. allocation
     for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
     {
-        if (isBitUsed(i) == 0)
+        if (isBitUsed(bitMap,i) == 0)
         {
             countBlocksCont++;
         }
@@ -181,13 +193,13 @@ int allocBlocksCont(int blocksNeeded)
         // Mark the bits corresponding to blockNum as used
         for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
         {
-            setBitUsed(i);
+            setBitUsed(bitMap, i);
         }
 
         // write the updated bitmap to disk, and check error
-        int checkVal = LBAwrite(bitMap, vcb->bitMapSizeBlocks, 1);
+        int checkVal = LBAwrite(bitMap, bitMapSizeBlocks, 1);
 
-        if (checkVal != vcb->bitMapSizeBlocks)
+        if (checkVal != bitMapSizeBlocks)
         {
             printf("\nLBAwrite() failed in allocBlocksCont()\n");
             return -1;

@@ -12,14 +12,14 @@
  *
  **************************************************************/
 
-#include "fsLow.h"
-#include "mfs.h"
-#include "fsDir.h"
-#include "fsFree.h"
-#include "DE.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+
+#include "fsDir.h"
+#include "fsLow.h"
+
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -74,7 +74,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     }
 
     // set the first directory entry points to itself
-    strcpy(directory[0].filename, ".");
+    strcpy(directory[0].fileName, ".");
     directory[0].size = actualDirEntries * sizeof(DE);
     directory[0].location = startBlock;
     directory[0].isDir = 1;
@@ -98,7 +98,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
         p = &directory[0];
     }
 
-    strcpy(directory[1].filename, "..");
+    strcpy(directory[1].fileName, "..");
 
     directory[1].size = p->size;
     directory[1].location = p->location;
