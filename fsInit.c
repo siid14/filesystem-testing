@@ -37,7 +37,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	// determin if you need to format the volume of not
 
 	// create a VCB pointer of blockSize and LBAread block 0
-	VCB * vcb = malloc(blockSize);
+	VCB *vcb = malloc(blockSize);
 	if (vcb == NULL)
 	{
 		printf("vcb malloc() failed in fsInit.c\n");
@@ -54,14 +54,19 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 		// initialize the values in vcb
 		vcb->signature = SIGNATURE;
-		printf("vcb->signature: %ld\n", vcb->signature);
+		printf("vcb->signature: %ld\n\n", vcb->signature);
 
 		vcb->numberOfBlocks = numberOfBlocks;
 		vcb->blockSize = blockSize;
 
 		// initialize free space
-		vcb->bitMapLocation = initFreeSpace(bitMap, numberOfBlocks, blockSize);
-		printf("vcb->bitMapLocation: %d\n", vcb->bitMapLocation);
+		vcb->bitMapLocation = initFreeSpace(numberOfBlocks, blockSize);
+		printf("vcb->bitMapLocation: %d\n\n", vcb->bitMapLocation);
+		printf("After init free space \n");
+		printf("bitMap[0]: %x\n", bitMap[0]);
+		printf("bitMap[1]: %x\n", bitMap[1]);
+		printf("bitMap[2441]: %x\n\n", bitMap[2441]);
+		printf("isBitUsed[1], 0 free, 1 used: %d\n", isBitUsed(1));
 
 		// initialize root directory
 		vcb->rootDirLocation = initDir(initialDirEntries, NULL, blockSize);
@@ -76,8 +81,12 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	// signature matched reload the free space
 	else
 	{
+
+		int testGetFreeBlock = getFreeBlockNum();
+		printf("testGetFreeBlock: %d\n", testGetFreeBlock);
+
 		printf("\nSignature found,  start reloading\n\n");
-		vcb->bitMapLocation = loadFreeSpace(bitMap, numberOfBlocks, blockSize);
+		vcb->bitMapLocation = loadFreeSpace(numberOfBlocks, blockSize);
 	}
 
 	free(vcb);

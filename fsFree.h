@@ -17,42 +17,40 @@
 #define _FS_FREE_H
 #include "mfs.h"
 
-// create a global char array for bitmap
+// share global char array for bitmap
 // malloc() may assign extra bytes, but don't use those extra bytes
 // there are maybe some extra bits at last byte
 // use numOfBlocks in vcb to check how many bits are necessary
-unsigned char *bitMap;
-
+extern unsigned char *bitMap;
 
 // initFreeSpace is called when you initialize the volume
 // it returns the block number where the freespace map starts
-int initFreeSpace(unsigned char *bitMap, int blockCount, int bytesPerBlock);
+int initFreeSpace(int blockCount, int bytesPerBlock);
 
 // if the volume is already initialized you need to call loadFreeSpace
 // so the system has the freespace system ready to use.
-int loadFreeSpace(unsigned char *bitMap, int blockCount, int bytesPerBlock);
+int loadFreeSpace(int blockCount, int bytesPerBlock);
 
 // * HELPER FUNCTIONS
 // set the bit corresponding to blockNum to 1 (mark the block as used)
-void setBitUsed(unsigned char *bitMap, unsigned int blockNum);
+void setBitUsed(unsigned int blockNum);
 
 // set the bit corresponding to blockNum to 0 (mark the block as free)
-void setBitFree(unsigned char *bitMap, unsigned int blockNum);
+void setBitFree(unsigned int blockNum);
 
 // Check if the bit corresponding to blockNum is used
 // return value: 1 used  0 free
-int isBitUsed(unsigned char *bitMap, unsigned int blockNum);
+int isBitUsed(unsigned int blockNum);
 
 // Find the first free block
-int getFreeBlockNum(unsigned char *bitMap);
+int getFreeBlockNum();
 
 ////        Contiguous      ////
 // Take amount of blocks needed and allocate
 // return the starting blockNum, -1 if free blocks are not enough
-int allocBlocksCont(unsigned char *bitMap, int blocksNeeded);
+int allocBlocksCont(int blocksNeeded);
 
-int releaseBlocksCont(unsigned char *bitMap, int start, int count); // not needed for M1
-
+int releaseBlocksCont(int start, int count); // not needed for M1
 
 ////    Extent      ////
 ////    Prototypes from Lecture

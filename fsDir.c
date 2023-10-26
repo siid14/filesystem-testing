@@ -16,10 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #include "fsDir.h"
 #include "fsLow.h"
-
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -30,7 +28,7 @@
 int initDir(int initialDirEntries, DE *parent, int blockSize)
 {
 
-    // printf("\n--------- INSIDE THE initDir function ---------\n");
+    printf("\n--------- INSIDE THE initDir function ---------\n");
 
     // allocate memory
 
@@ -51,7 +49,13 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
         return -1;
     }
 
+    printf("\nIn initDir, Before blocks allocation\n");
+
     int startBlock = allocBlocksCont(blocksNeeded);
+
+    printf("\n startBlock: %d", startBlock);
+    printf("\nIn initDir, After blocks allocation\n");
+
     // check error
     if (startBlock == -1)
     {
