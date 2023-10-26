@@ -75,7 +75,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 		printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
 
-		write vcb to block 0
+		//write vcb to block 0
 		if (LBAwrite(vcb, 1, 0) != 1)
 		{
 			printf("In fsInit.c:  LBAwrite() failed on vcb\n");
