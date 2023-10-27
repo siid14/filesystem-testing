@@ -13,11 +13,15 @@
  *
  *
  **************************************************************/
+#ifndef _FS_FREE_H
+#define _FS_FREE_H
 #include "mfs.h"
-#include "fsLow.h"
 
-// create a global char array for bitmap
-unsigned char *bitMap;
+// share global char array for bitmap
+// malloc() may assign extra bytes, but don't use those extra bytes
+// there are maybe some extra bits at last byte
+// use numOfBlocks in vcb to check how many bits are necessary
+extern unsigned char *bitMap;
 
 // initFreeSpace is called when you initialize the volume
 // it returns the block number where the freespace map starts
@@ -38,7 +42,7 @@ void setBitFree(unsigned int blockNum);
 // return value: 1 used  0 free
 int isBitUsed(unsigned int blockNum);
 
-// Find the first free block 
+// Find the first free block
 int getFreeBlockNum();
 
 ////        Contiguous      ////
@@ -52,21 +56,23 @@ int releaseBlocksCont(int start, int count); // not needed for M1
 ////    Prototypes from Lecture
 ////    TODO after M1
 
-// definition of an extent
-typedef struct extent
-{
-    int start;
-    int count;
-} extent, *pextent;
+// // definition of an extent
+// typedef struct extent
+// {
+//     int start;
+//     int count;
+// } extent, *pextent;
 
-// allocateBlocks is how you obtain disk blocks.
-// the first parameter is the number of blocks the caller requires
-// the second parameter is the minimum number of blocks in any one extent
-// except the last one.
-// it returns an array of extent
-extent *allocateBlocksExt(int required, int minPerExtent);
+// // allocateBlocks is how you obtain disk blocks.
+// // the first parameter is the number of blocks the caller requires
+// // the second parameter is the minimum number of blocks in any one extent
+// // except the last one.
+// // it returns an array of extent
+// extent *allocateBlocksExt(int required, int minPerExtent);
 
-// This function returns blocks to the freespace system. If the caller wants
-//  to free all the blocks in a series of extents, they should loop each extent
-//  calling releaseBlocks for each extent
-void releaseBlocksExt(int start, int count);
+// // This function returns blocks to the freespace system. If the caller wants
+// //  to free all the blocks in a series of extents, they should loop each extent
+// //  calling releaseBlocks for each extent
+// void releaseBlocksExt(int start, int count);
+
+#endif

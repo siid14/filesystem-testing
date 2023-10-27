@@ -12,14 +12,12 @@
  *
  **************************************************************/
 
-#include "fsLow.h"
-#include "mfs.h"
-#include "fsDir.h"
-#include "fsFree.h"
-#include "DE.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "fsDir.h"
+#include "fsLow.h"
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -30,17 +28,22 @@
 int initDir(int initialDirEntries, DE *parent, int blockSize)
 {
 
-    // printf("\n--------- INSIDE THE initDir function ---------\n");
+    printf("\n------ INSIDE THE initDir function ------ \n");
 
     // allocate memory
 
     int bytesNeeded = sizeof(DE) * initialDirEntries;
+    printf("Size of one entry: %d\n", sizeof(DE));
+    printf("Bytes needed for %d entris: %ld\n", initialDirEntries, bytesNeeded);
 
     int blocksNeeded = (bytesNeeded + (blockSize - 1)) / blockSize;
+    printf("blocksNeeded in initDir(): %d\n", blocksNeeded);
 
-    bytesNeeded = blocksNeeded * blockSize;
+    int bytesMalloc = blocksNeeded * blockSize;
+    printf("Bytes malloc: %d\n", bytesMalloc);
 
-    int actualDirEntries = blocksNeeded / sizeof(DE);
+    int actualDirEntries = bytesMalloc / sizeof(DE);
+    printf("actualDirEntries: %d\n",actualDirEntries);
 
     DE *directory = malloc(bytesNeeded);
     if (directory == NULL)
@@ -52,6 +55,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     }
 
     int startBlock = allocBlocksCont(blocksNeeded);
+
     // check error
     if (startBlock == -1)
     {
@@ -74,7 +78,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     }
 
     // set the first directory entry points to itself
-    strcpy(directory[0].filename, ".");
+    strcpy(directory[0].fileName, ".");
     directory[0].size = actualDirEntries * sizeof(DE);
     directory[0].location = startBlock;
     directory[0].isDir = 1;
@@ -98,7 +102,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
         p = &directory[0];
     }
 
-    strcpy(directory[1].filename, "..");
+    strcpy(directory[1].fileName, "..");
 
     directory[1].size = p->size;
     directory[1].location = p->location;
