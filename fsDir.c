@@ -74,7 +74,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
         directory[i].isDir = 0;
         directory[i].timeCreated = 0;
         directory[i].timeLastModified = 0;
-        directory[i].timeLastModified = 0;
+        directory[i].timeLastAccessed = 0;
     }
 
     // set the first directory entry points to itself
@@ -110,7 +110,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
 
     directory[1].timeCreated = p->timeCreated;
     directory[1].timeLastModified = p->timeLastModified;
-    directory[1].timeLastModified = p->timeLastModified;
+    directory[1].timeLastAccessed = p->timeLastAccessed;
 
     int ret = LBAwrite(directory, blocksNeeded, startBlock);
     // check error
