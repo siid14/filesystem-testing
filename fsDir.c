@@ -33,8 +33,8 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     // allocate memory
 
     int bytesNeeded = sizeof(DE) * initialDirEntries;
-    printf("Size of one entry: %d\n", sizeof(DE));
-    printf("Bytes needed for %d entris: %ld\n", initialDirEntries, bytesNeeded);
+    printf("Size of one entry: %ld\n", sizeof(DE));
+    printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
     int blocksNeeded = (bytesNeeded + (blockSize - 1)) / blockSize;
     printf("blocksNeeded in initDir(): %d\n", blocksNeeded);
