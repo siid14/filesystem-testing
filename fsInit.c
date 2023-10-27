@@ -61,17 +61,16 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 		// initialize free space
 		vcb->bitMapLocation = initFreeSpace(numberOfBlocks, blockSize);
-		printf("\n--- OUTSIDE initFreeSpace() ---\n");
+		printf("\n------ OUTSIDE initFreeSpace() ------\n\n\n");
 		printf("vcb->bitMapLocation: %d\n\n", vcb->bitMapLocation);
 		printf("After init free space \n");
 		printf("bitMap[0]: %x\n", bitMap[0]);
 		printf("bitMap[1]: %x\n", bitMap[1]);
-		printf("bitMap[2441]: %x\n\n", bitMap[2441]);
 		printf("isBitUsed[1], 0 free, 1 used: %d\n", isBitUsed(1));
 
 		// initialize root directory
 		vcb->rootDirLocation = initDir(initialDirEntries, NULL, blockSize);
-		printf("\n--------- OUTSIDE THE initDir function ---------\n");
+		printf("\n------ OUTSIDE THE initDir function------\n\n\n");
 		printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 		printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
 
