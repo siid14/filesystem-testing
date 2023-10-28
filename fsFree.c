@@ -27,7 +27,7 @@ int bitMapSizeBits;
 // use value provided in fsInit.c to initialize bitmap
 int initFreeSpace(int blockCount, int bytesPerBlock)
 {
-    printf("\n------ INSIDE initFreeSpace() ------\n");
+    // printf("\n------ INSIDE initFreeSpace() ------\n");
     bitMapSizeBits = blockCount;
     // number of blocks = number of bits in bitmap
     // 1 byte = 8 bit, calculate the bytes needed for  ceiling round up
@@ -44,8 +44,8 @@ int initFreeSpace(int blockCount, int bytesPerBlock)
     unsigned int blocksInitUsed = blocksBitmap + 1;
 
     int bitMapBytesMalloc = blocksBitmap * bytesPerBlock;
-    printf("bitMapSizeBytes: %d\n", bitMapSizeBytes);
-    printf("bitMapBytesMalloc: %d\n", bitMapBytesMalloc);
+    // printf("bitMapSizeBytes: %d\n", bitMapSizeBytes);
+    // printf("bitMapBytesMalloc: %d\n", bitMapBytesMalloc);
     bitMap = malloc(bitMapBytesMalloc);
 
     // Initialize bit map

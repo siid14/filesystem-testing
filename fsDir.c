@@ -28,22 +28,22 @@
 int initDir(int initialDirEntries, DE *parent, int blockSize)
 {
 
-    printf("\n------ INSIDE THE initDir function ------ \n");
+    // printf("\n------ INSIDE THE initDir function ------ \n");
 
     // allocate memory
 
     int bytesNeeded = sizeof(DE) * initialDirEntries;
-    printf("Size of one entry: %ld\n", sizeof(DE));
-    printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
+    // printf("Size of one entry: %ld\n", sizeof(DE));
+    // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
     int blocksNeeded = (bytesNeeded + (blockSize - 1)) / blockSize;
-    printf("blocksNeeded in initDir(): %d\n", blocksNeeded);
+    // printf("blocksNeeded in initDir(): %d\n", blocksNeeded);
 
     int bytesMalloc = blocksNeeded * blockSize;
-    printf("Bytes malloc: %d\n", bytesMalloc);
+    // printf("Bytes malloc: %d\n", bytesMalloc);
 
     int actualDirEntries = bytesMalloc / sizeof(DE);
-    printf("actualDirEntries: %d\n",actualDirEntries);
+    // printf("actualDirEntries: %d\n",actualDirEntries);
 
     DE *directory = malloc(bytesNeeded);
     if (directory == NULL)

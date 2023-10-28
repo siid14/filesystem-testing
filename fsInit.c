@@ -50,29 +50,29 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	// if it does not match, we need to initialize it
 	if (vcb->signature != SIGNATURE)
 	{
-		printf("\nSignature not found,  start initializing\n\n");
+		printf("\nSignature not found,  start formatting\n\n");
 
 		// initialize the values in vcb
 		vcb->signature = SIGNATURE;
-		printf("vcb->signature: %ld\n\n", vcb->signature);
+		// printf("vcb->signature: %ld\n\n", vcb->signature);
 
 		vcb->numberOfBlocks = numberOfBlocks;
 		vcb->blockSize = blockSize;
 
 		// initialize free space
 		vcb->bitMapLocation = initFreeSpace(numberOfBlocks, blockSize);
-		printf("\n------ OUTSIDE initFreeSpace() ------\n\n\n");
-		printf("vcb->bitMapLocation: %d\n\n", vcb->bitMapLocation);
-		printf("After init free space \n");
-		printf("bitMap[0]: %x\n", bitMap[0]);
-		printf("bitMap[1]: %x\n", bitMap[1]);
-		printf("isBitUsed[1], 0 free, 1 used: %d\n", isBitUsed(1));
+		// printf("\n------ OUTSIDE initFreeSpace() ------\n\n\n");
+		// printf("vcb->bitMapLocation: %d\n\n", vcb->bitMapLocation);
+		// printf("After init free space \n");
+		// printf("bitMap[0]: %x\n", bitMap[0]);
+		// printf("bitMap[1]: %x\n", bitMap[1]);
+		// printf("isBitUsed[1], 0 free, 1 used: %d\n", isBitUsed(1));
 
 		// initialize root directory
 		vcb->rootDirLocation = initDir(initialDirEntries, NULL, blockSize);
-		printf("\n------ OUTSIDE THE initDir function------\n\n\n");
-		printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
-		printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
+		// printf("\n------ OUTSIDE THE initDir function------\n\n\n");
+		// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
+		// printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
 
 		//write vcb to block 0
 		if (LBAwrite(vcb, 1, 0) != 1)
