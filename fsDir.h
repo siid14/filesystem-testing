@@ -20,6 +20,7 @@
 // it returns the number of first block of the directory in the disk
 // the first parameter is the number of directory entry in the directory
 // the second parameter is the pointer to its parent directory entry.
+// the third parameter is the bytes per block
 // for root directory, the parent should be null.
 int initDir(int initialDirEntries, DE *parent, int blockSize);
 

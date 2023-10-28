@@ -23,6 +23,7 @@
 // it returns the number of first block of the directory in the disk
 // the first parameter is the number of directory entry in the directory
 // the second parameter is the pointer to its parent directory entry.
+// the third parameter is the bytes per block
 // for root directory, the parent should be null.
 
 int initDir(int initialDirEntries, DE *parent, int blockSize)
@@ -68,7 +69,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     // mark every entry as unused
     for (int i = 0; i < actualDirEntries; i++)
     {
-        strcpy(directory[0].fileName, "\0");
+        strcpy(directory[i].fileName, "\0");
         directory[i].size = 0;
         directory[i].location = 0;
         directory[i].isDir = 0;
