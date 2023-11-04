@@ -4,6 +4,7 @@
 #include <time.h>
 #define MAX_FILENAME_LEN 255 // maximum filename length
 
+// TEST ONLY struct
 typedef struct DE
 {
     char fileName[MAX_FILENAME_LEN + 1]; // file name cstring, +1 for the NULL
@@ -11,36 +12,90 @@ typedef struct DE
     unsigned int location;               // starting block number of the directory/file
     unsigned int isDir;                  // flag indicating if this entry is a directory (1) or a file (0)
 
-    time_t timeCreated;      // time when the file created
-    time_t timeLastModified; // time when the file last modified
-    time_t timeLastAccessed; // time when the file last accessed
 } DE;
 
 typedef struct ppInfo
 {
     DE *parent;        // parent directory
-    int index;         // index of lastElement
+    int index;         // index of lastElement, -1 if it does not exist
     char *lastElement; // name of last element
 } ppInfo;
 
 int parsePath(char *path, ppInfo *ppi);
 
+// Helper function
+int findEntryInDir(DE *parent, char *token); // -2: file or path not found,
+void loadDir(DE *temp, DE *parent);
+
+// Keep these in memory
+DE *rootDir;
+DE *cwd;
+
+/*
+home    dir1
+        dir2    foo
+        dir3
+
+*/
+
 int main()
 {
     ppInfo *ppi;
-    
-    char path[] = "/test1/test2/foo";
+
+    // Initialize TEST root directory
+    rootDir = malloc(4 * sizeof(DE));
+    strcpy(rootDir[0].fileName, "rootDir");
+    rootDir[0].size = 4 * sizeof(DE);
+    rootDir[0].isDir = 1;
+
+    strcpy(rootDir[1].fileName, "dir1");
+    rootDir[1].isDir = 1;
+
+    strcpy(rootDir[2].fileName, "dir2");
+    rootDir[2].isDir = 1;
+
+    strcpy(rootDir[3].fileName, "dir3");
+    rootDir[3].isDir = 1;
+
+    // Initialize TEST current working directory
+    cwd = malloc(2 * sizeof(DE));
+    cwd = &rootDir[2];
+
+    printf("cwd[0]: %s\n", cwd->fileName);
+    // strcpy(cwd[0].fileName, "dir2");
+    // cwd[0].size = 2 * sizeof(DE);
+    // cwd[0].isDir = 1;
+
+    strcpy(cwd[1].fileName, "foo");
+    cwd[1].isDir = 0;
+
+    // test parse path
+    char path[] = "/dir2";
     parsePath(path, ppi);
 
-    // Add printf() to check value
-}
+    printf("\n\n----   OUTSIDE parsePath() -----\n");
 
+    // Add printf() to check value
+    printf("\nAfter parsePath()\n");
+    printf("Parent dir: %s\n", ppi->parent->fileName);
+    printf("Index: %d\n", ppi->index);
+    printf("Last element: %s\n", ppi->lastElement);
+
+    free(rootDir);
+    rootDir = NULL;
+    free(cwd);
+    cwd = NULL;
+}
 
 // pseudo code from 10-31
 // need to modify
 int parsePath(char *path, ppInfo *ppi)
 {
-    char *startPath;
+
+    printf("\n\n----   INSIDE parsePath() -----\n");
+    printf("\npath: %s\n", path);
+
+    DE *startDir;
     DE *parent;
     char *token1;
     char *token2;
@@ -49,74 +104,122 @@ int parsePath(char *path, ppInfo *ppi)
 
     if (path == NULL)
     {
-        return -1;
+        return (-1);
     }
 
     if (ppi = NULL)
     {
-        return -1;
+        return (-1);
     }
 
     if (path[0] == '/')
     {
-        startPath = rootDir; // 
+
+        startDir = rootDir;
     }
     else
     {
-        startPath = cwd;
+
+        startDir = cwd;
     }
 
-    parent = startPath;
+    printf("startDir[0]: %s\n", startDir[0].fileName);
+
+    parent = startDir;
     token1 = strtok_r(path, "/", &savePtr);
+
+    printf("parent[0]: %s\n", parent[0].fileName);
+    printf("token1: %s\n", token1);
 
     if (token1 == NULL)
     {
-        if (strcmp([ path, "/" ]) == 0)
+        if (strcmp(path, "/") == 0)
         {
+
             ppi->parent = parent;
             ppi->index = -1;
             ppi->lastElement = NULL;
-            return 0;
+            return (0);
         }
-        return -1;
+        return (-1);
     }
 
     while (token1 != NULL)
     {
-        index = FindEntryInDir(parent, token1);
+        index = findEntryInDir(parent, token1);
         token2 = strtok_r(NULL, "/", &savePtr);
+
+        printf("\n\ntoken1: %s\n", token1);
+        printf("index: %d\n", index);
+        printf("token2: %s\n", token2);
 
         if (token2 == NULL)
         {
+            printf("\nINSIDE if (token2 == NULL)\n");
+
             ppi->parent = parent;
             ppi->lastElement = strdup(token1);
             ppi->index = index;
-            return 0;
+            return (0);
         }
 
         if (index == -1)
         {
-            return -2;
+            return (-2);
         }
 
-        if(!isDirectory(&(parent[index])))
+        if (parent[index].isDir != 1) // not a dir
         {
-            return -2;
+            return (-2);
         }
 
-        DE * temp = loadDir(&(parent[index]));
+        // Not for TEST only, implement in FS project
 
-        if (temp == NULL)
-        {
-            return -1;
-        }
+        // DE *temp;
+        // loadDir(temp, &parent[index]); // use LBAread  in FS project
 
-        if ( parent != startDir)
-        {
-            free(parent);
-        }
+        // if (temp == NULL)
+        // {
+        //     return (-1);
+        // }
 
-        parent = temp;
+        // if (parent != startDir)
+        // {
+        //     free(parent);
+        // }
+
+        // parent = temp;
+
         token1 = token2;
+
+        printf("parent[0]: %s\n", parent[0].fileName);
+        printf("\n\ntoken1: %s\n", token1);
     }
 }
+
+int findEntryInDir(DE *parent, char *token)
+{
+
+    // get the total number of DE in the directory
+    int numberOfDE = parent[0].size / sizeof(parent);
+
+    for (int i = 0; i < numberOfDE; i++)
+    {
+        if (strcmp(parent[i].fileName, token) == 0)
+        {
+            return i;
+        }
+    }
+
+    // not found in the directory
+    return (-1);
+}
+
+// for FS project
+// use LBAread() in FS project
+// void loadDir(DE *temp, DE *parent)
+// {
+    
+//     int blockCount = (parent->size + blockSize - 1) / blockSize; // may need to change VCB to global to get blockSize
+//     LBAread(temp, blockCount, parent->location);
+// }
