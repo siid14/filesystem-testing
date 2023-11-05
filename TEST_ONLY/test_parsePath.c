@@ -25,11 +25,15 @@ int parsePath(char *path, ppInfo *ppi);
 
 // Helper function
 int findEntryInDir(DE *parent, char *token); // -2: file or path not found,
-void loadDir(DE *temp, DE *parent);
+void loadDir(DE *temp, DE *parent); // Not tested in this file
+
 
 // Keep these in memory
 DE *rootDir;
 DE *cwd;
+
+// may need change VCB to global in FS project to get blockSize
+int blockSize = 512;
 
 /*
 rootDir     dir1
@@ -236,11 +240,13 @@ int findEntryInDir(DE *parent, char *token)
     return (-1);
 }
 
-// for FS project
+// Not for TEST
+// to be implemented FS project
 // use LBAread() in FS project
-// void loadDir(DE *temp, DE *parent)
-// {
+void loadDir(DE *temp, DE *parent)
+{
 
-//     int blockCount = (parent->size + blockSize - 1) / blockSize; // may need to change VCB to global to get blockSize
-//     LBAread(temp, blockCount, parent->location);
-// }
+    int blockCount = (parent->size + blockSize - 1) / blockSize; // may need to change VCB to global to get blockSize
+    temp = malloc(blockCount * blockSize);
+    LBAread(temp, blockCount, parent->location);
+}
