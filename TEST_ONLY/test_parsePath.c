@@ -24,9 +24,8 @@ typedef struct ppInfo
 int parsePath(char *path, ppInfo *ppi);
 
 // Helper function
-int findEntryInDir(DE *parent, char *token); // -2: file or path not found,
-void loadDir(DE *temp, DE *parent); // Not tested in this file
-
+int findEntryInDir(DE *parent, char *token);        // -2: file or path not found,
+void loadDir(DE **temp, DE *parent, int blockSize); // Not tested in this file
 
 // Keep these in memory
 DE *rootDir;
@@ -77,15 +76,15 @@ int main()
 
     /*
 
-    working path: 
-    /dir1  
-    /dir2   
+    working path:
+    /dir1
+    /dir2
     /dir3
 
     dir2/foo
 
     */
-    
+
     char path[] = "/dir3";
     parsePath(path, ppi);
 
@@ -113,26 +112,21 @@ int parsePath(char *path, ppInfo *ppi)
     printf("\n\n----   INSIDE parsePath() -----\n");
     printf("\npath: %s\n", path);
 
-    DE *startDir;
-    DE *parent;
+    // check for invalid input parameters
+    if (path == NULL || ppi == NULL)
+    {
+        return -1;
+    }
+
+    DE *startDir; // directory to start from
+    DE *parent;   // current parent directory
     char *token1;
     char *token2;
     char *savePtr;
     int index;
 
-    if (path == NULL)
-    {
-        return (-1);
-    }
-
-    if (ppi == NULL)
-    {
-        return (-1);
-    }
-
     if (path[0] == '/')
     {
-
         startDir = rootDir;
     }
     else
@@ -200,7 +194,7 @@ int parsePath(char *path, ppInfo *ppi)
         DE *temp = &parent[index];
 
         // to be implemented in FS project
-        // loadDir(temp, &parent[index]); 
+        // loadDir(temp, &parent[index]);
 
         if (temp == NULL)
         {
@@ -243,10 +237,28 @@ int findEntryInDir(DE *parent, char *token)
 // Not for TEST
 // to be implemented FS project
 // use LBAread() in FS project
-void loadDir(DE *temp, DE *parent)
-{
 
+// load directory entries into memory
+void loadDir(DE **temp, DE *parent, int blockSize) // temp is a pointer to a pointer to DE -  holds the loaded directory entries
+                                                   // parent is the parent directory entry from which to load the entries
+{
+    // check if the parent directory entry/temp is NULL
+    if (temp == NULL || parent == NULL)
+    {
+        fprintf(stderr, "Invalid input parameters in loadDir\n");
+        return;
+    }
+
+    // calculate the number of blocks required to store the directory entries
     int blockCount = (parent->size + blockSize - 1) / blockSize; // may need to change VCB to global to get blockSize
-    temp = malloc(blockCount * blockSize);
+
+    // allocate memory for the directory entries and store the pointer in temp
+    *temp = (DE *)malloc(blockCount * blockSize);
+    // check if memory allocation was successful
+    if (*temp == NULL)
+    {
+        fprintf(stderr, "Failed to allocate memory for directory entries\n");
+        return;
+    }
     LBAread(temp, blockCount, parent->location);
 }
