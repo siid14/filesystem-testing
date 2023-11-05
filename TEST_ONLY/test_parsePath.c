@@ -32,15 +32,16 @@ DE *rootDir;
 DE *cwd;
 
 /*
-home    dir1
-        dir2    foo
-        dir3
+rootDir     dir1
+            dir2    foo
+            dir3
 
 */
 
 int main()
 {
     ppInfo *ppi;
+    ppi = malloc(sizeof(ppInfo));
 
     // Initialize TEST root directory
     rootDir = malloc(4 * sizeof(DE));
@@ -59,18 +60,29 @@ int main()
 
     // Initialize TEST current working directory
     cwd = malloc(2 * sizeof(DE));
-    cwd = &rootDir[2];
 
+    strcpy(cwd[0].fileName, "dir2");
+    cwd[0].size = 2 * sizeof(DE);
+    cwd[0].isDir = 1;
     printf("cwd[0]: %s\n", cwd->fileName);
-    // strcpy(cwd[0].fileName, "dir2");
-    // cwd[0].size = 2 * sizeof(DE);
-    // cwd[0].isDir = 1;
 
     strcpy(cwd[1].fileName, "foo");
     cwd[1].isDir = 0;
 
-    // test parse path
-    char path[] = "/dir2";
+    // test parse path, change path to test
+
+    /*
+
+    working path: 
+    /dir1  
+    /dir2   
+    /dir3
+
+    dir2/foo
+
+    */
+    
+    char path[] = "/dir3";
     parsePath(path, ppi);
 
     printf("\n\n----   OUTSIDE parsePath() -----\n");
@@ -85,6 +97,8 @@ int main()
     rootDir = NULL;
     free(cwd);
     cwd = NULL;
+    free(ppi);
+    ppi = NULL;
 }
 
 // pseudo code from 10-31
@@ -107,7 +121,7 @@ int parsePath(char *path, ppInfo *ppi)
         return (-1);
     }
 
-    if (ppi = NULL)
+    if (ppi == NULL)
     {
         return (-1);
     }
@@ -153,6 +167,9 @@ int parsePath(char *path, ppInfo *ppi)
         printf("index: %d\n", index);
         printf("token2: %s\n", token2);
 
+        printf("\n\nIndex: %d\n", index);
+        printf("parent[index].isDir: %d\n", parent[index].isDir);
+
         if (token2 == NULL)
         {
             printf("\nINSIDE if (token2 == NULL)\n");
@@ -173,22 +190,26 @@ int parsePath(char *path, ppInfo *ppi)
             return (-2);
         }
 
-        // Not for TEST only, implement in FS project
+        // for TEST only
+        // use LBAread  in FS project
 
-        // DE *temp;
-        // loadDir(temp, &parent[index]); // use LBAread  in FS project
+        DE *temp = &parent[index];
 
-        // if (temp == NULL)
-        // {
-        //     return (-1);
-        // }
+        // to be implemented in FS project
+        // loadDir(temp, &parent[index]); 
 
-        // if (parent != startDir)
-        // {
-        //     free(parent);
-        // }
+        if (temp == NULL)
+        {
+            return (-1);
+        }
 
-        // parent = temp;
+        if (parent != startDir)
+        {
+            free(parent);
+            parent = NULL;
+        }
+
+        parent = temp;
 
         token1 = token2;
 
@@ -219,7 +240,7 @@ int findEntryInDir(DE *parent, char *token)
 // use LBAread() in FS project
 // void loadDir(DE *temp, DE *parent)
 // {
-    
+
 //     int blockCount = (parent->size + blockSize - 1) / blockSize; // may need to change VCB to global to get blockSize
 //     LBAread(temp, blockCount, parent->location);
 // }
