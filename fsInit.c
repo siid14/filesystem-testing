@@ -128,11 +128,12 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
 	printf("\n-------------------------------------------------\n");
 
-	char path[] = "/dir3";
-	parsePath(path, ppi);
+	char path[] = "/dir6";
+	int checkVal = parsePath(path, ppi);
 	printf("\n\n----   OUTSIDE parsePath() -----\n");
 
 	printf("\nAfter parsePath()\n");
+	printf("Return value of parsePath: %d\n", checkVal);
 	printf("Parent dir: %s\n", ppi->parent->fileName);
 	printf("Index: %d\n", ppi->index);
 	printf("Last element: %s\n", ppi->lastElement);
