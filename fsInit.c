@@ -128,7 +128,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
 	printf("\n-------------------------------------------------\n");
 
-	char path[] = "/dir5";
+	char path[] = "/dir3";
 	parsePath(path, ppi);
 	printf("\n\n----   OUTSIDE parsePath() -----\n");
 

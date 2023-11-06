@@ -73,6 +73,8 @@ int parsePath(char *path, ppInfo *ppi)
     while (token1 != NULL)
     {
         index = findEntryInDir(parent, token1);
+        printf("\n---- OUTSIDE findEntryDir() ----\n");
+
         token2 = strtok_r(NULL, "/", &savePtr);
 
         printf("\n\ntoken1: %s\n", token1);
@@ -82,6 +84,14 @@ int parsePath(char *path, ppInfo *ppi)
         printf("\n\nIndex: %d\n", index);
         printf("parent[index].isDir: %d\n", parent[index].isDir);
 
+
+        if (index == -1)
+        {
+            printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
+
+            return (-2);
+        }
+        
         if (token2 == NULL)
         {
             printf("\nINSIDE if (token2 == NULL)\n");
@@ -93,12 +103,6 @@ int parsePath(char *path, ppInfo *ppi)
             break;
         }
 
-        if (index == -1)
-        {
-            printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
-
-            return (-2);
-        }
 
         if (parent[index].isDir != 1) // not a dir
         {
@@ -128,16 +132,18 @@ int parsePath(char *path, ppInfo *ppi)
         printf("\n\ntoken1: %s\n", token1);
     }
 
-    //free(temp);
-    //temp = NULL;
+    // free(temp);
+    // temp = NULL;
     return (0);
 }
 
 int findEntryInDir(DE *parent, char *token)
 {
-
+    printf("\n---- INSIDE findEntryDir() ----\n");
     // get the total number of DE in the directory
-    int numberOfDE = parent[0].size / sizeof(parent);
+    int numberOfDE = parent[0].size / sizeof(DE);
+    printf("parent[0].size: %ld\n",parent[0].size);
+    printf("numberOfDE: %d\n",numberOfDE);
 
     for (int i = 0; i < numberOfDE; i++)
     {
@@ -153,11 +159,10 @@ int findEntryInDir(DE *parent, char *token)
 
 int loadDir(DE **temp, DE *parent)
 {
-    
 
     // load new directory from disk into temp directory
     int blockCount = (parent->size + vcb->blockSize - 1) / vcb->blockSize;
-    *temp = (DE*)malloc(blockCount * vcb->blockSize);
+    *temp = (DE *)malloc(blockCount * vcb->blockSize);
     if (*temp == NULL)
     {
         printf("Error: malloc() failed loadDir()\n");
@@ -198,7 +203,7 @@ int loadRootDir(DE **rootDir, int initialDirEntries)
     int bytesMalloc = blocksNeeded * vcb->blockSize;
     printf("Bytes malloc: %d\n", bytesMalloc);
 
-    *rootDir = (DE*)malloc(bytesMalloc);
+    *rootDir = (DE *)malloc(bytesMalloc);
 
     int ret = LBAread(*rootDir, blocksNeeded, vcb->rootDirLocation);
 
