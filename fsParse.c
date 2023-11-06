@@ -89,24 +89,21 @@ int parsePath(char *path, ppInfo *ppi)
             ppi->parent = parent;
             ppi->lastElement = strdup(token1);
             ppi->index = index;
-            free(temp);
-            temp = NULL;
-            return (0);
+
+            break;
         }
 
         if (index == -1)
         {
             printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
-            free(temp);
-            temp = NULL;
+
             return (-2);
         }
 
         if (parent[index].isDir != 1) // not a dir
         {
             printf("[%s] in [%s] is not a directory", parent[index].fileName, parent[0].fileName);
-            free(temp);
-            temp = NULL;
+
             return (-2);
         }
 
@@ -130,6 +127,10 @@ int parsePath(char *path, ppInfo *ppi)
         printf("parent[0]: %s\n", parent[0].fileName);
         printf("\n\ntoken1: %s\n", token1);
     }
+
+    //free(temp);
+    //temp = NULL;
+    return (0);
 }
 
 int findEntryInDir(DE *parent, char *token)
@@ -152,12 +153,7 @@ int findEntryInDir(DE *parent, char *token)
 
 int loadDir(DE *temp, DE *parent)
 {
-    // free unwanted temp directory
-    if (temp != NULL)
-    {
-        free(temp);
-        temp = NULL;
-    }
+    
 
     // load new directory from disk into temp directory
     int blockCount = (parent->size + vcb->blockSize - 1) / vcb->blockSize;
