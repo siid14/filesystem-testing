@@ -25,7 +25,6 @@
 #define FT_DIRECTORY DT_DIR
 #define FT_LINK DT_LNK
 
-
 #ifndef uint64_t
 typedef u_int64_t uint64_t;
 #endif
@@ -56,8 +55,8 @@ typedef struct VCB
   unsigned int blockSize;      // Size of each block in bytes
 
   unsigned long signature; // Signature for VCB struct
-  
-  unsigned int bitMapLocation;   // starting block num of bitMap
+
+  unsigned int bitMapLocation; // starting block num of bitMap
 
   unsigned int rootDirLocation; // starting block num of the root directory
 

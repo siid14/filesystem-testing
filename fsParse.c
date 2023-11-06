@@ -23,7 +23,7 @@
 int parsePath(char *path, ppInfo *ppi)
 {
 
-    printf("\n\n----   INSIDE parsePath() -----\n");
+    printf("\n\n--------------   INSIDE parsePath() ---------------\n");
     printf("\npath: %s\n", path);
 
     DE *startDir;
@@ -80,10 +80,7 @@ int parsePath(char *path, ppInfo *ppi)
         printf("\n\ntoken1: %s\n", token1);
         printf("index: %d\n", index);
         printf("token2: %s\n", token2);
-
-        printf("\n\nIndex: %d\n", index);
         printf("parent[index].isDir: %d\n", parent[index].isDir);
-
 
         if (index == -1)
         {
@@ -91,7 +88,7 @@ int parsePath(char *path, ppInfo *ppi)
 
             return (-2);
         }
-        
+
         if (token2 == NULL)
         {
             printf("\nINSIDE if (token2 == NULL)\n");
@@ -100,13 +97,12 @@ int parsePath(char *path, ppInfo *ppi)
             ppi->lastElement = strdup(token1);
             ppi->index = index;
 
-            break;
+            return (0);
         }
-
 
         if (parent[index].isDir != 1) // not a dir
         {
-            printf("[%s] in [%s] is not a directory", parent[index].fileName, parent[0].fileName);
+            printf("[%s] in Parent[%s] is not a directory", parent[index].fileName, parent[0].fileName);
 
             return (-2);
         }
@@ -125,16 +121,11 @@ int parsePath(char *path, ppInfo *ppi)
         }
 
         parent = temp;
-
         token1 = token2;
 
         printf("parent[0]: %s\n", parent[0].fileName);
         printf("\n\ntoken1: %s\n", token1);
     }
-
-    // free(temp);
-    // temp = NULL;
-    return (0);
 }
 
 int findEntryInDir(DE *parent, char *token)
@@ -142,8 +133,8 @@ int findEntryInDir(DE *parent, char *token)
     printf("\n---- INSIDE findEntryDir() ----\n");
     // get the total number of DE in the directory
     int numberOfDE = parent[0].size / sizeof(DE);
-    printf("parent[0].size: %ld\n",parent[0].size);
-    printf("numberOfDE: %d\n",numberOfDE);
+    printf("parent[0].size: %ld\n", parent[0].size);
+    printf("numberOfDE: %d\n", numberOfDE);
 
     for (int i = 0; i < numberOfDE; i++)
     {
@@ -170,7 +161,7 @@ int loadDir(DE **temp, DE *parent)
     }
 
     int ret = LBAread(*temp, blockCount, parent->location);
-    // check error
+    
     if (ret != blockCount)
     {
         printf("Error: LBAread() returned %d in loadDir()\n", ret);
@@ -184,46 +175,30 @@ int loadDir(DE **temp, DE *parent)
 int loadRootDir(DE **rootDir, int initialDirEntries)
 {
 
-    printf("\n--- in loadRootDir() ---\n");
-
-    // free unwanted temp directory
-    if (*rootDir != NULL)
-    {
-        free(*rootDir);
-        *rootDir = NULL;
-    }
+    //printf("\n--- in loadRootDir() ---\n");
 
     int bytesNeeded = sizeof(DE) * initialDirEntries;
     // printf("Size of one entry: %ld\n", sizeof(DE));
     // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
     int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
-    printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
+    //printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
 
     int bytesMalloc = blocksNeeded * vcb->blockSize;
-    printf("Bytes malloc: %d\n", bytesMalloc);
+    //printf("Bytes malloc: %d\n", bytesMalloc);
 
     *rootDir = (DE *)malloc(bytesMalloc);
 
     int ret = LBAread(*rootDir, blocksNeeded, vcb->rootDirLocation);
 
-    printf("block read: %d\n", ret);
+    //printf("block read: %d\n", ret);
 
-    // printf("rootDir[0].fileName: [%s]\n", rootDir[0].fileName);
-    // printf("rootDir[1].fileName: [%s]\n", rootDir[1].fileName);
-    // printf("rootDir[2].fileName: [%s]\n", rootDir[2].fileName);
-    // printf("rootDir[3].fileName: [%s]\n", rootDir[3].fileName);
-    // printf("rootDir[4].fileName: [%s]\n", rootDir[4].fileName);
-    // printf("rootDir[5].fileName: [%s]\n", rootDir[5].fileName);
-    // printf("rootDir[6].fileName: [%s]\n", rootDir[6].fileName);
-
-    // check error
     if (ret != blocksNeeded)
     {
         printf("Error: LBAread() returned %d in loadRootDir()\n", ret);
         return -1;
     }
 
-    printf("\n--- out loadRootDir() ---\n");
+    //printf("\n--- out loadRootDir() ---\n");
     return 1;
 }
