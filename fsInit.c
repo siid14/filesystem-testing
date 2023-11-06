@@ -99,23 +99,23 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	// Load root directory as current working directory after initialization
 
 	////////////////////////////////////////
-	// loadRootDir(rootDir, initialDirEntries);
-	// loadRootDir(cwd, initialDirEntries);
+	loadRootDir(&rootDir, initialDirEntries);
+	loadRootDir(&cwd, initialDirEntries);
 
-	int bytesNeeded = sizeof(DE) * initialDirEntries;
-	// printf("Size of one entry: %ld\n", sizeof(DE));
-	// printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
+	// int bytesNeeded = sizeof(DE) * initialDirEntries;
+	// // printf("Size of one entry: %ld\n", sizeof(DE));
+	// // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
-	int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
-	printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
+	// int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
+	// printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
 
-	int bytesMalloc = blocksNeeded * vcb->blockSize;
-	printf("Bytes malloc: %d\n", bytesMalloc);
+	// int bytesMalloc = blocksNeeded * vcb->blockSize;
+	// printf("Bytes malloc: %d\n", bytesMalloc);
 
-	rootDir = malloc(bytesMalloc);
-	LBAread(rootDir, blocksNeeded, vcb->rootDirLocation);
-	cwd = malloc(bytesMalloc);
-	LBAread(cwd, blocksNeeded, vcb->rootDirLocation);
+	// rootDir = malloc(bytesMalloc);
+	// LBAread(rootDir, blocksNeeded, vcb->rootDirLocation);
+	// cwd = malloc(bytesMalloc);
+	// LBAread(cwd, blocksNeeded, vcb->rootDirLocation);
 
 	////////////////////////////////////////
 

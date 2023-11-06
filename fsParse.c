@@ -107,7 +107,7 @@ int parsePath(char *path, ppInfo *ppi)
             return (-2);
         }
 
-        loadDir(temp, &parent[index]);
+        loadDir(&temp, &parent[index]);
 
         if (temp == NULL)
         {
@@ -151,20 +151,20 @@ int findEntryInDir(DE *parent, char *token)
     return (-1);
 }
 
-int loadDir(DE *temp, DE *parent)
+int loadDir(DE **temp, DE *parent)
 {
     
 
     // load new directory from disk into temp directory
     int blockCount = (parent->size + vcb->blockSize - 1) / vcb->blockSize;
-    temp = malloc(blockCount * vcb->blockSize);
-    if (temp == NULL)
+    *temp = (DE*)malloc(blockCount * vcb->blockSize);
+    if (*temp == NULL)
     {
         printf("Error: malloc() failed loadDir()\n");
         return -1;
     }
 
-    int ret = LBAread(temp, blockCount, parent->location);
+    int ret = LBAread(*temp, blockCount, parent->location);
     // check error
     if (ret != blockCount)
     {
@@ -176,16 +176,16 @@ int loadDir(DE *temp, DE *parent)
 }
 
 // Load root directory, return -1 if failed or 1 if success
-int loadRootDir(DE *rootDir, int initialDirEntries)
+int loadRootDir(DE **rootDir, int initialDirEntries)
 {
 
     printf("\n--- in loadRootDir() ---\n");
 
     // free unwanted temp directory
-    if (rootDir != NULL)
+    if (*rootDir != NULL)
     {
-        free(rootDir);
-        rootDir = NULL;
+        free(*rootDir);
+        *rootDir = NULL;
     }
 
     int bytesNeeded = sizeof(DE) * initialDirEntries;
@@ -198,19 +198,19 @@ int loadRootDir(DE *rootDir, int initialDirEntries)
     int bytesMalloc = blocksNeeded * vcb->blockSize;
     printf("Bytes malloc: %d\n", bytesMalloc);
 
-    rootDir = malloc(bytesMalloc);
+    *rootDir = (DE*)malloc(bytesMalloc);
 
-    int ret = LBAread(rootDir, blocksNeeded, vcb->rootDirLocation);
+    int ret = LBAread(*rootDir, blocksNeeded, vcb->rootDirLocation);
 
     printf("block read: %d\n", ret);
 
-    printf("rootDir[0].fileName: [%s]\n", rootDir[0].fileName);
-    printf("rootDir[1].fileName: [%s]\n", rootDir[1].fileName);
-    printf("rootDir[2].fileName: [%s]\n", rootDir[2].fileName);
-    printf("rootDir[3].fileName: [%s]\n", rootDir[3].fileName);
-    printf("rootDir[4].fileName: [%s]\n", rootDir[4].fileName);
-    printf("rootDir[5].fileName: [%s]\n", rootDir[5].fileName);
-    printf("rootDir[6].fileName: [%s]\n", rootDir[6].fileName);
+    // printf("rootDir[0].fileName: [%s]\n", rootDir[0].fileName);
+    // printf("rootDir[1].fileName: [%s]\n", rootDir[1].fileName);
+    // printf("rootDir[2].fileName: [%s]\n", rootDir[2].fileName);
+    // printf("rootDir[3].fileName: [%s]\n", rootDir[3].fileName);
+    // printf("rootDir[4].fileName: [%s]\n", rootDir[4].fileName);
+    // printf("rootDir[5].fileName: [%s]\n", rootDir[5].fileName);
+    // printf("rootDir[6].fileName: [%s]\n", rootDir[6].fileName);
 
     // check error
     if (ret != blocksNeeded)
