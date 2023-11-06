@@ -21,10 +21,10 @@ typedef struct ppInfo
     char *lastElement; // name of last element
 } ppInfo;
 
-int parsePath(char *path, ppInfo *ppi);
+int parsePath(char *path, ppInfo *ppi); // 0: valid path, -1: error, -2: file or path not found
 
 // Helper function
-int findEntryInDir(DE *parent, char *token); // -2: file or path not found,
+int findEntryInDir(DE *parent, char *token); // -1: file or path not found
 void loadDir(DE *temp, DE *parent); // Not tested in this file
 
 
@@ -115,6 +115,7 @@ int parsePath(char *path, ppInfo *ppi)
 
     DE *startDir;
     DE *parent;
+    DE *temp;
     char *token1;
     char *token2;
     char *savePtr;
@@ -197,7 +198,7 @@ int parsePath(char *path, ppInfo *ppi)
         // for TEST only
         // use LBAread  in FS project
 
-        DE *temp = &parent[index];
+        temp = &parent[index];
 
         // to be implemented in FS project
         // loadDir(temp, &parent[index]); 
@@ -214,12 +215,15 @@ int parsePath(char *path, ppInfo *ppi)
         }
 
         parent = temp;
+      
 
         token1 = token2;
 
         printf("parent[0]: %s\n", parent[0].fileName);
         printf("\n\ntoken1: %s\n", token1);
     }
+
+
 }
 
 int findEntryInDir(DE *parent, char *token)
