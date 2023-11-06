@@ -4,6 +4,7 @@
 #include <time.h>
 #define MAX_FILENAME_LEN 255 // maximum filename length
 
+// * DATA STRUCTURES
 // TEST ONLY struct
 typedef struct DE
 {
@@ -21,6 +22,7 @@ typedef struct ppInfo
     char *lastElement; // name of last element
 } ppInfo;
 
+// * FUNCTIONS
 int parsePath(char *path, ppInfo *ppi);
 
 // Helper function
