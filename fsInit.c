@@ -104,6 +104,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("\n-------------------------------------------------\n");
 
 	printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
+	
 	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n",rootDir[0].fileName);
 	printf("\n-------------------------------------------------\n");
 

@@ -20,8 +20,6 @@
 #include "fsParse.h"
 #include "fsLow.h"
 
-
-
 int parsePath(char *path, ppInfo *ppi)
 {
 
@@ -184,25 +182,39 @@ int loadDir(DE *temp, DE *parent)
 // Load root directory, return -1 if failed or 1 if success
 int loadRootDir(DE *rootDir, int initialDirEntries)
 {
+
     printf("\n--- in loadRootDir() ---\n");
+
+    // free unwanted temp directory
+    if (rootDir != NULL)
+    {
+        free(rootDir);
+        rootDir = NULL;
+    }
+
     int bytesNeeded = sizeof(DE) * initialDirEntries;
     // printf("Size of one entry: %ld\n", sizeof(DE));
     // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
     int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
-     printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
+    printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
 
     int bytesMalloc = blocksNeeded * vcb->blockSize;
-     printf("Bytes malloc: %d\n", bytesMalloc);
+    printf("Bytes malloc: %d\n", bytesMalloc);
 
     rootDir = malloc(bytesMalloc);
 
     int ret = LBAread(rootDir, blocksNeeded, vcb->rootDirLocation);
 
-    printf("rootDir[0].fileName: [%s]\n",rootDir[0].fileName);
-    printf("rootDir[1].fileName: [%s]\n",rootDir[1].fileName);
-    printf("rootDir[2].fileName: [%s]\n",rootDir[2].fileName);
-    printf("rootDir[3].fileName: [%s]\n",rootDir[3].fileName);
+    printf("block read: %d\n", ret);
+
+    printf("rootDir[0].fileName: [%s]\n", rootDir[0].fileName);
+    printf("rootDir[1].fileName: [%s]\n", rootDir[1].fileName);
+    printf("rootDir[2].fileName: [%s]\n", rootDir[2].fileName);
+    printf("rootDir[3].fileName: [%s]\n", rootDir[3].fileName);
+    printf("rootDir[4].fileName: [%s]\n", rootDir[4].fileName);
+    printf("rootDir[5].fileName: [%s]\n", rootDir[5].fileName);
+    printf("rootDir[6].fileName: [%s]\n", rootDir[6].fileName);
 
     // check error
     if (ret != blocksNeeded)
