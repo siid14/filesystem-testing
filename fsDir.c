@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h> // for struct stat
 
 #include "fsDir.h"
 #include "fsParse.h"
@@ -132,4 +133,43 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     free(directory);
     directory = NULL;
     return (startBlock);
+}
+
+// this function is used to close a directory after it has been read
+// it takes a pointer to a pointer to a directory entry (DE) as an argument
+void fs_closedir(DE **dir)
+{
+
+    if (*dir == NULL)
+    {
+        fprintf(stderr, "Directory pointer is NULL\n");
+        return;
+    }
+
+    // free the memory allocated for the directory
+    free(*dir);
+    // set the directory pointer to NULL to avoid dangling pointer issues
+    *dir = NULL;
+}
+
+int fs_stat(const char *path, struct stat *buf)
+{
+    // find the directory entry for the given path
+    DE *de = findDE(path); // ! need to be implemented
+    if (de == NULL)
+    {
+        fprintf(stderr, "File or directory not found\n");
+        return -1;
+    }
+
+    // fill the struct stat object (buf) with information from the directory entry
+    buf->st_size = de->size; // set the file size
+    // ? extra info - might be useful
+    buf->st_blocks = (de->size + 511) / 512;      // calculate the number of blocks occupied by the file
+    buf->st_mode = de->isDir ? S_IFDIR : S_IFREG; // determine the file type: regular file or directory
+    buf->st_ctime = de->timeCreated;              // set the creation time
+    buf->st_mtime = de->timeLastModified;         // set the last modification time
+    buf->st_atime = de->timeLastAccessed;         // set the last access time
+
+    return 0;
 }
