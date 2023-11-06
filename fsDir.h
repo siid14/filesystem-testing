@@ -22,7 +22,6 @@
 // the second parameter is the pointer to its parent directory entry.
 // the third parameter is the bytes per block
 // for root directory, the parent should be null.
-int initDir(int initialDirEntries, DE *parent, int blockSize);
-
+int initDir(int DEcount, DE *parent, int blockSize);
 
 #endif

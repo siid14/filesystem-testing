@@ -25,6 +25,7 @@
 #include "fsDir.h"
 #include "fsFree.h"
 #include "fsParse.h"
+#include "fsFile.h"
 
 // initial number of directory entries in each directory
 #define initialDirEntries 50
@@ -109,7 +110,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
 	printf("\n-------------------------------------------------\n");
 
-	char path[] = "dir3/foo";
+	char path[] = "/dir4";
 	int checkVal = parsePath(path, ppi);
 	printf("\n\n-------------------   OUTSIDE parsePath() --------------------\n");
 
