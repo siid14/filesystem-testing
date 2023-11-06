@@ -102,19 +102,6 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	// loadRootDir(rootDir, initialDirEntries);
 	// loadRootDir(cwd, initialDirEntries);
 
-	// free unwanted temp directory
-	if (rootDir != NULL)
-	{
-		free(rootDir);
-		rootDir = NULL;
-	}
-
-	if (cwd != NULL)
-	{
-		free(cwd);
-		cwd = NULL;
-	}
-
 	int bytesNeeded = sizeof(DE) * initialDirEntries;
 	// printf("Size of one entry: %ld\n", sizeof(DE));
 	// printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
@@ -141,7 +128,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
 	printf("\n-------------------------------------------------\n");
 
-	char path[] = "/dir2";
+	char path[] = "/dir5";
 	parsePath(path, ppi);
 	printf("\n\n----   OUTSIDE parsePath() -----\n");
 
