@@ -24,10 +24,16 @@
 #include "mfs.h"
 #include "fsDir.h"
 #include "fsFree.h"
+#include "fsParse.h"
 
 // initial number of directory entries in each directory
 #define initialDirEntries 50
 #define SIGNATURE 1234
+
+VCB *vcb;
+DE *rootDir; // root directory
+DE *cwd;     // current working directory
+ppInfo *ppi; // parse path info
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
@@ -37,7 +43,8 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	// determin if you need to format the volume of not
 
 	// create a VCB pointer of blockSize and LBAread block 0
-	VCB *vcb = malloc(blockSize);
+
+	vcb = malloc(blockSize);
 	if (vcb == NULL)
 	{
 		printf("vcb malloc() failed in fsInit.c\n");
@@ -74,7 +81,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 		// printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
 
-		//write vcb to block 0
+		// write vcb to block 0
 		if (LBAwrite(vcb, 1, 0) != 1)
 		{
 			printf("In fsInit.c:  LBAwrite() failed on vcb\n");
@@ -88,15 +95,43 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		vcb->bitMapLocation = loadFreeSpace(numberOfBlocks, blockSize);
 	}
 
-	free(vcb);
-	vcb = NULL;
+	// For parsePath()
+	// Load root directory as current working directory after initialization
+	loadRootDir(rootDir, initialDirEntries);
+	loadRootDir(cwd, initialDirEntries);
+	ppi = malloc(sizeof(ppInfo));
+
+	printf("\n-------------------------------------------------\n");
+
+	printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
+	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n",rootDir[0].fileName);
+	printf("\n-------------------------------------------------\n");
+
+	char path[] = "/dir2";
+	parsePath(path, ppi);
+	printf("\n\n----   OUTSIDE parsePath() -----\n");
+
+	printf("\nAfter parsePath()\n");
+	printf("Parent dir: %s\n", ppi->parent->fileName);
+	printf("Index: %d\n", ppi->index);
+	printf("Last element: %s\n", ppi->lastElement);
 
 	return 0;
 }
 
 void exitFileSystem()
 {
+	free(vcb);
+	vcb = NULL;
 	free(bitMap);
 	bitMap = NULL;
+
+	free(rootDir);
+	rootDir = NULL;
+	free(cwd);
+	cwd = NULL;
+	free(ppi);
+	ppi = NULL;
+
 	printf("System exiting\n");
 }
