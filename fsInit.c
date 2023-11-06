@@ -43,7 +43,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// determin if you need to format the volume of not
 
-	// create a VCB pointer of blockSize and LBAread block 0
+	// LBAread block 0 to get VCB
 
 	vcb = malloc(blockSize);
 	if (vcb == NULL)
@@ -54,7 +54,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 	LBAread(vcb, 1, 0);
 
-	// look at the signature to in the VCB struct to see if it matches
+	// look at the signature in the VCB struct to see if it matches
 	// if it does not match, we need to initialize it
 	if (vcb->signature != SIGNATURE)
 	{
@@ -96,21 +96,19 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		vcb->bitMapLocation = loadFreeSpace(numberOfBlocks, blockSize);
 	}
 
-	// For parsePath()
-	// Load root directory as current working directory after initialization
+	// Keep necessary data in memory for parsePath()
 	loadRootDir(&rootDir, initialDirEntries);
 	loadRootDir(&cwd, initialDirEntries);
-
 	ppi = malloc(sizeof(ppInfo));
 
-	printf("\n-------------------------------------------------\n");
+	printf("\n------------------TEST-------------------------------\n");
 
 	printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 
 	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
 	printf("\n-------------------------------------------------\n");
 
-	char path[] = "/dir4";
+	char path[] = "/dir1";
 	int checkVal = parsePath(path, ppi);
 	printf("\n\n-------------------   OUTSIDE parsePath() --------------------\n");
 
