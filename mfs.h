@@ -24,7 +24,6 @@
 #define FT_REGFILE DT_REG
 #define FT_DIRECTORY DT_DIR
 #define FT_LINK DT_LNK
-#define MAX_FILENAME_LEN 255 // maximum filename length
 
 #ifndef uint64_t
 typedef u_int64_t uint64_t;
@@ -33,7 +32,8 @@ typedef u_int64_t uint64_t;
 typedef u_int32_t uint32_t;
 #endif
 
-////
+///////////////// BEGIN of our formatting struct ////////////////
+#define MAX_FILENAME_LEN 255 // maximum filename length
 
 // Directory Entry structure
 typedef struct DE
@@ -41,7 +41,8 @@ typedef struct DE
   char fileName[MAX_FILENAME_LEN + 1]; // file name cstring, +1 for the NULL
   unsigned long size;                  // size of the directory/file in bytes
   unsigned int location;               // starting block number of the directory/file
-  unsigned int isDir;                  // flag indicating if this entry is a directory (1) or a file (0)
+
+  unsigned int isDir; // flag indicating if this entry is a directory (1) or a file (0)
 
   time_t timeCreated;      // time when the file created
   time_t timeLastModified; // time when the file last modified
@@ -55,12 +56,16 @@ typedef struct VCB
   unsigned int blockSize;      // Size of each block in bytes
 
   unsigned long signature; // Signature for VCB struct
-  
-  unsigned int bitMapLocation;   // starting block num of bitMap
+
+  unsigned int bitMapLocation; // starting block num of bitMap
+
   unsigned int rootDirLocation; // starting block num of the root directory
+
 } VCB;
 
-////
+extern VCB *vcb;
+//////////////// END of our formatting struct ////////////////
+
 // This structure is returned by fs_readdir to provide the caller with information
 // about each file as it iterates through a directory
 struct fs_diriteminfo

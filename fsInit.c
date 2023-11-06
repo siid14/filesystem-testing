@@ -24,10 +24,17 @@
 #include "mfs.h"
 #include "fsDir.h"
 #include "fsFree.h"
+#include "fsParse.h"
+#include "fsFile.h"
 
 // initial number of directory entries in each directory
 #define initialDirEntries 50
 #define SIGNATURE 1234
+
+VCB *vcb;
+DE *rootDir; // root directory
+DE *cwd;	 // current working directory
+ppInfo *ppi; // parse path info
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
@@ -36,8 +43,9 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 	// determin if you need to format the volume of not
 
-	// create a VCB pointer of blockSize and LBAread block 0
-	VCB *vcb = malloc(blockSize);
+	// LBAread block 0 to get VCB
+
+	vcb = malloc(blockSize);
 	if (vcb == NULL)
 	{
 		printf("vcb malloc() failed in fsInit.c\n");
@@ -46,7 +54,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 	LBAread(vcb, 1, 0);
 
-	// look at the signature to in the VCB struct to see if it matches
+	// look at the signature in the VCB struct to see if it matches
 	// if it does not match, we need to initialize it
 	if (vcb->signature != SIGNATURE)
 	{
@@ -74,13 +82,13 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 		// printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
 
-		//write vcb to block 0
+		// write vcb to block 0
 		if (LBAwrite(vcb, 1, 0) != 1)
 		{
 			printf("In fsInit.c:  LBAwrite() failed on vcb\n");
 		}
 	}
-	// signature matched reload the free space
+	// signature matched, reload the free space
 	else
 	{
 
@@ -88,15 +96,44 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		vcb->bitMapLocation = loadFreeSpace(numberOfBlocks, blockSize);
 	}
 
-	free(vcb);
-	vcb = NULL;
+	// Keep necessary data in memory for parsePath()
+	loadRootDir(&rootDir, initialDirEntries);
+	loadRootDir(&cwd, initialDirEntries);
+	ppi = malloc(sizeof(ppInfo));
+
+	printf("\n------------------TEST-------------------------------\n");
+
+	printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
+
+	printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
+	printf("\n-------------------------------------------------\n");
+
+	char path[] = "/dir1";
+	int checkVal = parsePath(path, ppi);
+	printf("\n\n-------------------   OUTSIDE parsePath() --------------------\n");
+
+	printf("\nAfter parsePath()\n");
+	printf("Return value of parsePath: %d\n", checkVal);
+	printf("Parent dir: %s\n", ppi->parent->fileName);
+	printf("Index: %d\n", ppi->index);
+	printf("Last element: %s\n", ppi->lastElement);
 
 	return 0;
 }
 
 void exitFileSystem()
 {
+	free(vcb);
+	vcb = NULL;
 	free(bitMap);
 	bitMap = NULL;
+
+	free(rootDir);
+	rootDir = NULL;
+	free(cwd);
+	cwd = NULL;
+	free(ppi);
+	ppi = NULL;
+
 	printf("System exiting\n");
 }

@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include "fsDir.h"
+#include "fsParse.h"
 #include "fsLow.h"
 
 // this function init directory
@@ -46,7 +47,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     int actualDirEntries = bytesMalloc / sizeof(DE);
     // printf("actualDirEntries: %d\n",actualDirEntries);
 
-    DE *directory = malloc(bytesNeeded);
+    DE *directory = malloc(bytesMalloc);
     if (directory == NULL)
     {
         printf("Error: malloc() failed in fsDir.c\n");
@@ -112,6 +113,14 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     directory[1].timeCreated = p->timeCreated;
     directory[1].timeLastModified = p->timeLastModified;
     directory[1].timeLastAccessed = p->timeLastAccessed;
+
+    //////////// test parsePath() ////////////
+    strcpy(directory[2].fileName, "dir1");
+    strcpy(directory[3].fileName, "dir2");
+    strcpy(directory[4].fileName, "dir3");
+    strcpy(directory[5].fileName, "dir4");
+    strcpy(directory[6].fileName, "dir5");
+    //////////// test parsePath() ////////////
 
     int ret = LBAwrite(directory, blocksNeeded, startBlock);
     // check error
