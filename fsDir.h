@@ -23,7 +23,5 @@
 // the third parameter is the bytes per block
 // for root directory, the parent should be null.
 int initDir(int DEcount, DE *parent, int blockSize);
-void fs_closedir(DE **dir);
-int fs_stat(const char *path, struct stat *buf);
 
 #endif

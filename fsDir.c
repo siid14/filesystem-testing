@@ -20,6 +20,7 @@
 #include "fsDir.h"
 #include "fsParse.h"
 #include "fsLow.h"
+#include "mfs.h"
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -137,39 +138,39 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
 
 // this function is used to close a directory after it has been read
 // it takes a pointer to a pointer to a directory entry (DE) as an argument
-void fs_closedir(DE **dir)
+void fs_closedir(fdDir *dirp)
 {
 
-    if (*dir == NULL)
+    if (*dirp == NULL)
     {
         fprintf(stderr, "Directory pointer is NULL\n");
         return;
     }
 
     // free the memory allocated for the directory
-    free(*dir);
+    free(*dirp);
     // set the directory pointer to NULL to avoid dangling pointer issues
-    *dir = NULL;
+    *dirp = NULL;
 }
 
-int fs_stat(const char *path, struct stat *buf)
+int fs_stat(const char *path, struct fs_stat *buf)
 {
     // find the directory entry for the given path
-    DE *de = findDE(path); // ! need to be implemented
+    DE *de = findDE(path); // ? implement logic for finding the DE
     if (de == NULL)
     {
         fprintf(stderr, "File or directory not found\n");
         return -1;
     }
 
-    // fill the struct stat object (buf) with information from the directory entry
-    buf->st_size = de->size; // set the file size
-    // ? extra info - might be useful
-    buf->st_blocks = (de->size + 511) / 512;      // calculate the number of blocks occupied by the file
-    buf->st_mode = de->isDir ? S_IFDIR : S_IFREG; // determine the file type: regular file or directory
-    buf->st_ctime = de->timeCreated;              // set the creation time
-    buf->st_mtime = de->timeLastModified;         // set the last modification time
-    buf->st_atime = de->timeLastAccessed;         // set the last access time
+    // fill the custom fs_stat structure (buf) with information from the directory entry
+    buf->st_size = de->size; // set the total size in bytes
+    // ? need to figure out how to set the block size
+    buf->st_blksize = BLOCK_SIZE;              // set the block size un bytes
+    buf->st_blocks = (de->size + 511) / 512;   // calculate the number of blocks occupied by the file
+    buf->st_accesstime = de->timeLastAccessed; // set the last access time
+    buf->st_modtime = de->timeLastModified;    // set the last modification time
+    buf->st_createtime = de->timeCreated;      // set the time of last status change
 
     return 0;
 }
