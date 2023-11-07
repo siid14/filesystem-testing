@@ -13,7 +13,6 @@
  **************************************************************/
 #ifndef _FS_DIR_H
 #define _FS_DIR_H
-#include "mfs.h"
 #include "fsFree.h"
 
 // this function init directory
@@ -23,5 +22,4 @@
 // the third parameter is the bytes per block
 // for root directory, the parent should be null.
 int initDir(int DEcount, DE *parent, int blockSize);
-
 #endif

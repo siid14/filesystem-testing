@@ -15,10 +15,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h> // for struct stat
 
 #include "fsDir.h"
 #include "fsParse.h"
 #include "fsLow.h"
+#include "mfs.h"
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -132,4 +134,69 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     free(directory);
     directory = NULL;
     return (startBlock);
+}
+
+// this function is used to close a directory after it has been read
+int fs_closedir(fdDir *dirp)
+{
+    printf("\n\n-------- START fs_closedir() --------\n");
+
+    if (dirp == NULL)
+    {
+        // directory pointer is not pointing to a valid memory location
+        fprintf(stderr, "Directory pointer is already NULL: Cannot close a non-existent directory.\n");
+        return -1;
+    }
+
+    // free the memory allocated for the directory
+    free(dirp);
+    // set the directory pointer to NULL to avoid pointer issues
+    dirp = NULL;
+    printf("Directory pointer set up to NULL -- Directory closed successfully\n");
+    printf("------ END fs_closedir() -----\n");
+    return 0;
+}
+
+int fs_stat(const char *path, ppInfo *ppi, struct fs_stat *buf)
+{
+    printf("\n\n-------- START fs_stat() --------\n");
+
+    if (path == NULL || ppi == NULL || buf == NULL)
+    {
+        printf("Error: Invalid input parameters in fs_stat()\n");
+        return -1;
+    }
+
+    //  extract information about the file or directory
+    if (parsePath(path, ppi) == -1)
+    {
+        printf("Error: Unable to parse path in fs_stat()\n");
+        return -1;
+    }
+
+    // `ppi` contains information about the specified file or directory
+    // including its parent directory (`ppi->parent`) and its position within the parent directory (`ppi->index`)
+    // we use this information to access the specific directory entry (DE) that corresponds to the
+    // specified file or directory within its parent directory
+    DE *entry = ppi->parent + ppi->index;
+
+    printf("File/Directory Name: %s\n", entry->fileName);
+    printf("Size: %lu bytes\n", entry->size);
+    printf("Block Size: %u bytes\n", vcb->blockSize);
+    printf("Blocks Allocated: %lu\n", entry->size / 512); // number of 512B blocks allocated
+    printf("Last Access Time: %s", ctime(&entry->timeLastAccessed));
+    printf("Last Modification Time: %s", ctime(&entry->timeLastModified));
+    printf("Creation Time: %s", ctime(&entry->timeCreated));
+
+    // fill in the attributes in the `buf` structure
+    buf->st_size = entry->size;                   // total size, in bytes
+    buf->st_blksize = vcb->blockSize;             // blocksize for file system
+    buf->st_blocks = entry->size / 512;           // number of 512B blocks allocated
+    buf->st_accesstime = entry->timeLastAccessed; // time of last access
+    buf->st_modtime = entry->timeLastModified;    // time of last modification
+    buf->st_createtime = entry->timeCreated;      // time of last status change
+
+    printf("\n\n-------- END fs_stat() --------\n");
+
+    return 0;
 }
