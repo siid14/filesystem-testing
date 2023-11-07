@@ -175,6 +175,9 @@ int fs_stat(const char *path, ppInfo *ppi, struct fs_stat *buf)
     }
 
     // `ppi` contains information about the specified file or directory
+    // including its parent directory (`ppi->parent`) and its position within the parent directory (`ppi->index`)
+    // we use this information to access the specific directory entry (DE) that corresponds to the
+    // specified file or directory within its parent directory
     DE *entry = ppi->parent + ppi->index;
 
     printf("File/Directory Name: %s\n", entry->fileName);
