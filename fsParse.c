@@ -71,7 +71,9 @@ int parsePath(char *path, ppInfo *ppi)
     }
 
     while (token1 != NULL)
+
     {
+        // path = /home/student/doc
         index = findEntryInDir(parent, token1);
         printf("\n---- OUTSIDE findEntryDir() ----\n");
 
@@ -82,22 +84,27 @@ int parsePath(char *path, ppInfo *ppi)
         printf("token2: %s\n", token2);
         printf("parent[index].isDir: %d\n", parent[index].isDir);
 
-        if (index == -1)
-        {
-            printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
-
-            return (-2);
-        }
+       
 
         if (token2 == NULL)
         {
             printf("\nINSIDE if (token2 == NULL)\n");
 
-            ppi->parent = parent;
-            ppi->lastElement = strdup(token1);
-            ppi->index = index;
+            ppi->parent = parent; // student
+            ppi->lastElement = strdup(token1); // doc
+            ppi->index = index; // -1
+
+
+   // printf("\n\n--------------   OUTSIDE parsePath() ---------------\n");
 
             return (0);
+        }
+
+         if (index == -1)
+        {
+            printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
+
+            return (-2);
         }
 
         if (parent[index].isDir != 1) // not a dir
