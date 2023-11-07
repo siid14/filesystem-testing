@@ -41,13 +41,13 @@ int parsePath(const char *path, ppInfo *ppi)
     char *savePtr;
     int index;
 
-    if (path == NULL || ppi == NULL)
+    if (mutablePath == NULL || ppi == NULL)
     {
         printf("Error: invalid path or ppi in parsePath()");
         return (-1);
     }
 
-    if (path[0] == '/')
+    if (mutablePath[0] == '/')
     {
         startDir = rootDir;
     }
@@ -60,12 +60,12 @@ int parsePath(const char *path, ppInfo *ppi)
 
     parent = startDir;
     token1 = strtok_r(mutablePath, "/", &savePtr);
+  
 
     printf("parent[0]: %s\n", parent[0].fileName);
     printf("token1: %s\n", token1);
 
-    free(mutablePath);
-    mutablePath = NULL;
+  
 
     if (token1 == NULL)
     {
@@ -81,7 +81,10 @@ int parsePath(const char *path, ppInfo *ppi)
     }
 
     while (token1 != NULL)
+
     {
+
+        printf("\n\n inside while (token1!=NULL):token1: %s\n", token1);
         index = findEntryInDir(parent, token1);
         printf("\n---- OUTSIDE findEntryDir() ----\n");
 
