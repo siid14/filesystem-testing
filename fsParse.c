@@ -82,12 +82,7 @@ int parsePath(char *path, ppInfo *ppi)
         printf("token2: %s\n", token2);
         printf("parent[index].isDir: %d\n", parent[index].isDir);
 
-        if (index == -1)
-        {
-            printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
-
-            return (-2);
-        }
+      
 
         if (token2 == NULL)
         {
@@ -98,6 +93,13 @@ int parsePath(char *path, ppInfo *ppi)
             ppi->index = index;
 
             return (0);
+        }
+
+        if (index == -1)
+        {
+            printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
+
+            return (-2);
         }
 
         if (parent[index].isDir != 1) // not a dir
