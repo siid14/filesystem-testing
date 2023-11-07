@@ -137,20 +137,25 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
 }
 
 // this function is used to close a directory after it has been read
-// it takes a pointer to a pointer to a directory entry (DE) as an argument
-void fs_closedir(fdDir *dirp)
+int fs_closedir(fdDir *dirp) // ? might need to check to use **dir
 {
+    printf("------ Closing the directory -----\n");
 
-    if (*dirp == NULL)
+    if (dirp == NULL) // ? might need to check to use *dir
     {
-        fprintf(stderr, "Directory pointer is NULL\n");
-        return;
+        // directory pointer is not pointing to a valid memory location
+        fprintf(stderr, "Directory pointer is already NULL: Cannot close a non-existent directory.\n");
+        return -1;
     }
 
     // free the memory allocated for the directory
-    free(*dirp);
-    // set the directory pointer to NULL to avoid dangling pointer issues
-    *dirp = NULL;
+    free(dirp); // ? might need to check to use *dir
+    // set the directory pointer to NULL to avoid pointer issues
+    dirp = NULL; // ? might need to check to use *dir
+    printf("Directory pointer set up to NULL\n");
+    printf("------ Directory closed successfully -----\n");
+
+    return 0;
 }
 
 int fs_stat(const char *path, struct fs_stat *buf)
@@ -166,7 +171,7 @@ int fs_stat(const char *path, struct fs_stat *buf)
     // fill the custom fs_stat structure (buf) with information from the directory entry
     buf->st_size = de->size; // set the total size in bytes
     // ? need to figure out how to set the block size
-    buf->st_blksize = BLOCK_SIZE;              // set the block size un bytes
+    // buf->st_blksize = BLOCK_SIZE;              // set the block size un bytes
     buf->st_blocks = (de->size + 511) / 512;   // calculate the number of blocks occupied by the file
     buf->st_accesstime = de->timeLastAccessed; // set the last access time
     buf->st_modtime = de->timeLastModified;    // set the last modification time
