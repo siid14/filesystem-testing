@@ -31,7 +31,7 @@ extern ppInfo *ppi; // parse path info
 
 // 0: valid path, -1: invalid path or ppi, -2: file or dir not found
 // Take a path cstring and parse the info
-int parsePath(char *path, ppInfo *ppi);
+int parsePath(const char *path, ppInfo *ppi);
 
 //// Helper function ////
 // find and return the index of entry in the parent directory

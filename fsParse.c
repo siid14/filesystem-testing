@@ -20,11 +20,18 @@
 #include "fsParse.h"
 #include "fsLow.h"
 
-int parsePath(char *path, ppInfo *ppi)
+int parsePath(const char *path, ppInfo *ppi)
 {
 
     printf("\n\n--------------   INSIDE parsePath() ---------------\n");
     printf("\npath: %s\n", path);
+
+    char *mutablePath = strdup(path);
+    if (mutablePath == NULL) {
+        printf("error: failed to copy the path");
+        return -1;
+    }
+
 
     DE *startDir;
     DE *parent;
@@ -52,10 +59,13 @@ int parsePath(char *path, ppInfo *ppi)
     printf("startDir[0]: %s\n", startDir[0].fileName);
 
     parent = startDir;
-    token1 = strtok_r(path, "/", &savePtr);
+    token1 = strtok_r(mutablePath, "/", &savePtr);
 
     printf("parent[0]: %s\n", parent[0].fileName);
     printf("token1: %s\n", token1);
+
+    free(mutablePath);
+    mutablePath = NULL;
 
     if (token1 == NULL)
     {
