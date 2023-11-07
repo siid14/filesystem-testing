@@ -29,11 +29,11 @@ extern DE *rootDir; // root directory
 extern DE *cwd;     // current working directory
 extern ppInfo *ppi; // parse path info
 
-// 0: valid path, -1: invalid path or ppi, -2: file or dir not found
+// 0: valid path, -1: invalid path or ppi, -2: Dir not found, or parent is not a dir
 // Take a path cstring and parse the info
 int parsePath(const char *path, ppInfo *ppi);
 
-//// Helper function ////
+// Helper function //
 // find and return the index of entry in the parent directory
 // -1: file or path not found
 int findEntryInDir(DE *parent, char *token);
