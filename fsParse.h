@@ -33,7 +33,7 @@ extern ppInfo *ppi; // parse path info
 // Take a path cstring and parse the info
 int parsePath(char *path, ppInfo *ppi);
 
-//// Helper function ////
+// Helper function //
 // find and return the index of entry in the parent directory
 // -1: file or path not found
 int findEntryInDir(DE *parent, char *token);
