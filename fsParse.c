@@ -56,17 +56,17 @@ int parsePath(const char *path, ppInfo *ppi)
         startDir = cwd;
     }
 
-    printf("startDir[0]: %s\n", startDir[0].fileName);
+    // printf("startDir[0]: %s\n", startDir[0].fileName);
 
     parent = startDir;
     token1 = strtok_r(mutablePath, "/", &savePtr);
 
-    printf("parent[0]: %s\n", parent[0].fileName);
+    // printf("parent[0]: %s\n", parent[0].fileName);
     printf("token1: %s\n", token1);
 
     if (token1 == NULL)
     {
-        if (strcmp(path, "/") == 0)
+        if (strcmp(mutablePath, "/") == 0)
         {
 
             ppi->parent = parent;
@@ -90,17 +90,18 @@ int parsePath(const char *path, ppInfo *ppi)
 
     while (token1 != NULL)
     {
-        printf("\n\n inside while (token1!=NULL):token1: %s\n", token1);
+        printf("\n\n Inside while (token1 != NULL)\n");
 
         index = findEntryInDir(parent, token1);
-        printf("\n---- OUTSIDE findEntryDir() ----\n");
+        // printf("\n---- OUTSIDE findEntryDir() ----\n");
 
         token2 = strtok_r(NULL, "/", &savePtr);
 
         printf("\n\ntoken1: %s\n", token1);
-        printf("index: %d\n", index);
+        printf("index of token1: %d\n", index);
+        printf("parent[%d].isDir: %d\n", index ,parent[index].isDir);
         printf("token2: %s\n", token2);
-        printf("parent[index].isDir: %d\n", parent[index].isDir);
+       
 
         if (token2 == NULL)
         {
@@ -142,7 +143,6 @@ int parsePath(const char *path, ppInfo *ppi)
 
         if (temp == NULL)
         {
-
             printf("\n\n--------------   END parsePath() ---------------\n");
             return (-1);
         }
@@ -156,18 +156,18 @@ int parsePath(const char *path, ppInfo *ppi)
         parent = temp;
         token1 = token2;
 
-        printf("parent[0]: %s\n", parent[0].fileName);
+        //printf("parent[0]: %s\n", parent[0].fileName);
         printf("\n\ntoken1: %s\n", token1);
     }
 }
 
 int findEntryInDir(DE *parent, char *token)
 {
-    printf("\n---- INSIDE findEntryDir() ----\n");
+    //printf("\n---- INSIDE findEntryDir() ----\n");
     // get the total number of DE in the directory
     int numberOfDE = parent[0].size / sizeof(DE);
-    printf("parent[0].size: %ld\n", parent[0].size);
-    printf("numberOfDE: %d\n", numberOfDE);
+    // printf("parent[0].size: %ld\n", parent[0].size);
+    // printf("numberOfDE: %d\n", numberOfDE);
 
     for (int i = 0; i < numberOfDE; i++)
     {
