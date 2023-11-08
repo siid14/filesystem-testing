@@ -28,13 +28,15 @@
 #include "fsFile.h"
 
 // initial number of directory entries in each directory
-#define initialDirEntries 50
+#define DEFAULT_DE_COUNT 50
+#define MAX_PATH_LEN 4096
 #define SIGNATURE 1234
 
 VCB *vcb;
 DE *rootDir; // root directory
 DE *cwd;	 // current working directory
 ppInfo *ppi; // parse path info
+char* currentPath;
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
@@ -77,7 +79,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		// printf("isBitUsed[1], 0 free, 1 used: %d\n", isBitUsed(1));
 
 		// initialize root directory
-		vcb->rootDirLocation = initDir(initialDirEntries, NULL, blockSize);
+		vcb->rootDirLocation = initDir(DEFAULT_DE_COUNT, NULL, blockSize);
 		// printf("\n------ OUTSIDE THE initDir function------\n\n\n");
 		// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 		// printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
@@ -96,10 +98,15 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		vcb->bitMapLocation = loadFreeSpace(numberOfBlocks, blockSize);
 	}
 
-	// Keep necessary data in memory for parsePath()
-	loadRootDir(&rootDir, initialDirEntries);
-	loadRootDir(&cwd, initialDirEntries);
+	// Load necessary data in memory during initialization
+	loadRootDir(&rootDir, DEFAULT_DE_COUNT);
+	loadRootDir(&cwd, DEFAULT_DE_COUNT);
 	ppi = malloc(sizeof(ppInfo));
+	currentPath = malloc(MAX_PATH_LEN + 1);
+	strcpy(currentPath,"/");
+
+	
+
 
 	printf("\n------------------TEST-------------------------------\n");
 
@@ -126,15 +133,21 @@ void exitFileSystem()
 {
 	free(vcb);
 	vcb = NULL;
+
 	free(bitMap);
 	bitMap = NULL;
 
 	free(rootDir);
 	rootDir = NULL;
+
 	free(cwd);
 	cwd = NULL;
+
 	free(ppi);
 	ppi = NULL;
+	
+	free(currentPath);
+	currentPath = NULL;
 
 	printf("System exiting\n");
 }
