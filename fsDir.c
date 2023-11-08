@@ -145,8 +145,6 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     return (startBlock);
 }
 
-<<<<<<< HEAD
-
 int fs_setcwd(char *pathname){
 
     int result = parsePath(pathname,ppi);
@@ -278,7 +276,7 @@ int fs_isFile(char *filename){
         }
     }
 }
-=======
+
 // this function is used to close a directory after it has been read
 int fs_closedir(fdDir *dirp)
 {
@@ -300,7 +298,7 @@ int fs_closedir(fdDir *dirp)
     return 0;
 }
 
-int fs_stat(const char *path, ppInfo *ppi, struct fs_stat *buf)
+int fs_stat(const char *path, struct fs_stat *buf)
 {
     printf("\n\n-------- START fs_stat() --------\n");
 
@@ -343,4 +341,4 @@ int fs_stat(const char *path, ppInfo *ppi, struct fs_stat *buf)
 
     return 0;
 }
->>>>>>> c048adea7fc6045dd2c4270c22af2a476a6df087
+

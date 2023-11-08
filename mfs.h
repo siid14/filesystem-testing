@@ -118,6 +118,6 @@ struct fs_stat
   /* add additional attributes here for your file system */
 };
 
-int fs_stat(const char *path, ppInfo *ppi, struct fs_stat *buf);
+int fs_stat(const char *path, struct fs_stat *buf);
 
 #endif
