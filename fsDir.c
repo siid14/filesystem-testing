@@ -29,6 +29,7 @@ int blocksNeeded;
 int findFreeDE(DE * parent);
 void copyDE(DE* target, DE * resource);
 
+
 // this function init directory
 // it returns the number of first block of the directory in the disk
 // the first parameter is the number of directory entry in the directory
@@ -340,5 +341,16 @@ int fs_stat(const char *path, struct fs_stat *buf)
     printf("\n\n-------- END fs_stat() --------\n");
 
     return 0;
+}
+
+char *fs_getcwd(char *pathname, size_t size)
+{
+    // length of currentPath exceeds size
+    if(strlen(currentPath) > size)
+    {
+        return NULL;
+    }
+
+    return currentPath;  
 }
 

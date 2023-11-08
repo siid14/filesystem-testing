@@ -15,6 +15,8 @@
 #define _FS_DIR_H
 #include "fsFree.h"
 
+extern char* currentPath; // the current working path updated by setcwd
+
 // this function init directory
 // it returns the number of first block of the directory in the disk
 // the first parameter is the number of directory entry in the directory
