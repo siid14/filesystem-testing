@@ -23,15 +23,15 @@
 int parsePath(const char *path, ppInfo *ppi)
 {
 
-    printf("\n\n--------------   INSIDE parsePath() ---------------\n");
+    printf("\n\n--------------   START parsePath() ---------------\n");
     printf("\npath: %s\n", path);
 
     char *mutablePath = strdup(path);
-    if (mutablePath == NULL) {
+    if (mutablePath == NULL)
+    {
         printf("error: failed to copy the path");
         return -1;
     }
-
 
     DE *startDir;
     DE *parent;
@@ -60,12 +60,9 @@ int parsePath(const char *path, ppInfo *ppi)
 
     parent = startDir;
     token1 = strtok_r(mutablePath, "/", &savePtr);
-  
 
     printf("parent[0]: %s\n", parent[0].fileName);
     printf("token1: %s\n", token1);
-
-  
 
     if (token1 == NULL)
     {
@@ -75,8 +72,19 @@ int parsePath(const char *path, ppInfo *ppi)
             ppi->parent = parent;
             ppi->index = -1;
             ppi->lastElement = NULL;
+
+            printf("\n\nUpdated parse path info\n");
+            printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+            printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+            printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+            printf("Last element: %s\n", ppi->lastElement);
+            printf("Index of last element in parent: %d\n", ppi->index);
+
+            printf("\n\n--------------   END parsePath() ---------------\n");
             return (0);
         }
+
+        printf("\n\n--------------   END parsePath() ---------------\n");
         return (-1);
     }
 
@@ -94,21 +102,29 @@ int parsePath(const char *path, ppInfo *ppi)
         printf("token2: %s\n", token2);
         printf("parent[index].isDir: %d\n", parent[index].isDir);
 
-
         if (token2 == NULL)
         {
-            printf("\nINSIDE if (token2 == NULL)\n");
 
-            ppi->parent = parent; 
-            ppi->lastElement = strdup(token1); 
-            ppi->index = index; 
+            ppi->parent = parent;
+            ppi->lastElement = strdup(token1);
+            ppi->index = index;
 
+            printf("\n\nUpdated parse path info\n");
+            printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+            printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+            printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+            printf("Last element: %s\n", ppi->lastElement);
+            printf("Index of last element in parent: %d\n", ppi->index);
+
+            printf("\n\n--------------   END parsePath() ---------------\n");
             return (0);
         }
-        
-         if (index == -1)
+
+        if (index == -1)
         {
             printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
+
+            printf("\n\n--------------   END parsePath() ---------------\n");
 
             return (-2);
         }
@@ -117,6 +133,8 @@ int parsePath(const char *path, ppInfo *ppi)
         {
             printf("[%s] in Parent[%s] is not a directory", parent[index].fileName, parent[0].fileName);
 
+            printf("\n\n--------------   END parsePath() ---------------\n");
+
             return (-2);
         }
 
@@ -124,6 +142,8 @@ int parsePath(const char *path, ppInfo *ppi)
 
         if (temp == NULL)
         {
+
+            printf("\n\n--------------   END parsePath() ---------------\n");
             return (-1);
         }
 
@@ -174,7 +194,7 @@ int loadDir(DE **temp, DE *parent)
     }
 
     int ret = LBAread(*temp, blockCount, parent->location);
-    
+
     if (ret != blockCount)
     {
         printf("Error: LBAread() returned %d in loadDir()\n", ret);
@@ -188,23 +208,23 @@ int loadDir(DE **temp, DE *parent)
 int loadRootDir(DE **rootDir, int initialDirEntries)
 {
 
-    //printf("\n--- in loadRootDir() ---\n");
+    // printf("\n--- in loadRootDir() ---\n");
 
     int bytesNeeded = sizeof(DE) * initialDirEntries;
     // printf("Size of one entry: %ld\n", sizeof(DE));
     // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
     int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
-    //printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
+    // printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
 
     int bytesMalloc = blocksNeeded * vcb->blockSize;
-    //printf("Bytes malloc: %d\n", bytesMalloc);
+    // printf("Bytes malloc: %d\n", bytesMalloc);
 
     *rootDir = (DE *)malloc(bytesMalloc);
 
     int ret = LBAread(*rootDir, blocksNeeded, vcb->rootDirLocation);
 
-    //printf("block read: %d\n", ret);
+    // printf("block read: %d\n", ret);
 
     if (ret != blocksNeeded)
     {
@@ -212,6 +232,6 @@ int loadRootDir(DE **rootDir, int initialDirEntries)
         return -1;
     }
 
-    //printf("\n--- out loadRootDir() ---\n");
+    // printf("\n--- out loadRootDir() ---\n");
     return 1;
 }

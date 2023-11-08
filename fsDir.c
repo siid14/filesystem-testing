@@ -170,10 +170,10 @@ int fs_setcwd(char *pathname){
 
 int fs_mkdir(const char *pathname, mode_t mode){
 
-    printf("---- inside fs_mkdir() ----");
+    printf("---- inside fs_mkdir() ----\n");
     int result = parsePath(pathname,ppi);
-    printf("---- the result of parsePath is %d ----",result);
-    printf("---- the ppi index is %d ----",ppi->index);
+    printf("---- the result of parsePath is %d ----\n",result);
+    printf("---- the ppi index is %d ----\n",ppi->index);
 
     if(result == -2){
         printf("\nfile or directory does not exist\n");
@@ -191,7 +191,7 @@ int fs_mkdir(const char *pathname, mode_t mode){
             // DE * newDir;
             int freeIndex = findFreeDE(ppi->parent);
             if(freeIndex == -1){
-                printf("error: no more space for new directory");
+                printf("error: no more space for new directory\n");
                 return (-1);
             }
             copyDE(&ppi->parent[freeIndex],newDir);
@@ -202,7 +202,7 @@ int fs_mkdir(const char *pathname, mode_t mode){
 
         }else{
             // lastElement is already in the parent
-            printf("\n%s is already exsited............",ppi->lastElement);
+            printf("\n%s is already exsited............\n",ppi->lastElement);
             return -1;
         }
         
