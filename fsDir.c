@@ -133,3 +133,95 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     directory = NULL;
     return (startBlock);
 }
+
+
+//...take the path, call the parse path, get the parent, the last element, load that last element...
+fdDir *fs_opendir(const char *pathname)
+    {
+    int result = parsePath(pathname, ppi);
+
+    if (result == -2) 
+        {
+        printf("\nError: file or path does not exist..\n");
+        return NULL;
+        }
+    else if (result == -1) 
+        {
+        printf("\nError: invalid input path\n");
+        return NULL;
+        }
+    else if (ppi->parent[ppi->index].isDir == 0)
+        {
+        printf("\nError: %s is not a directory\n", ppi->lastElement);
+        return NULL;
+        }
+
+    fdDir *dirp = (fdDir *)malloc(sizeof(fdDir));
+    if (dirp == NULL)
+        {
+        return NULL;  //memory allocation failed
+        }
+
+    dirp->dirEntryPosition = 0;
+    dirp->directory = &ppi->parent[ppi->index];
+    
+    dirp->di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
+    if (dirp->di == NULL)
+        {
+        free(dirp);
+        return NULL;  //memory allocation failed
+        }
+    
+    dirp->di->d_reclen = sizeof(struct fs_diriteminfo);
+
+    return dirp;
+    }
+
+//...when calling readdir, it's gonna give us the 1st entry (.) and the 2nd entry...
+struct fs_diriteminfo *fs_readdir(fdDir *dirp)
+    {
+    if (dirp == NULL || dirp->directory == NULL) 
+        {
+        return NULL;
+        }
+
+    // Check if we have reached the end of the director
+    //...
+
+    fs_diriteminfo *di = malloc(sizeof(fs_diriteminfo));
+    if (di == NULL)
+        {
+        printf("Error: malloc() failed for fs_diriteminfo\n");
+        return NULL;
+        }
+
+    int entries = dirp->directory->size / sizeof(DE);
+
+    for (int i = dirp->dirEntryPosition; i < maxEntries; i++)
+        {
+        if (isUsedEntry(&(dirp->directory[i])))
+            {
+            strcpy(dirp->di->name, dirp->directory[i].name);
+            setType(&dirp->di->type, &(dirp->directory[i]));
+                
+            dirp->dirEntryPosition = i + 1;
+            return di;
+            }
+        }
+
+    return (NULL);
+    }
+
+int isUsedEntry(DE *entry)
+    {
+    return (entry && entry->fileName[0] != '\0');
+    }
+
+void setType(unsigned char *type, DE *entry)
+{
+    if (entry->isDir){
+        *type = FT_DIRECTORY;
+    } else {
+        *type = FT_REGFILE;
+    }
+}
