@@ -111,7 +111,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	printf("\n------------------TEST-------------------------------\n");
 	 
 	//Test md, rm, pwd
-	for( int i = 0; i<5; i++)
+	for( int i = 0; i<7; i++)
 	{
 		printf("rootDir[%d] is: %s\n", i, rootDir[i].fileName);
 	}
