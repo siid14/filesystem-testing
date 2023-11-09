@@ -22,13 +22,11 @@
 #include "fsLow.h"
 #include "mfs.h"
 
-
-DE * newDir;
+DE *newDir;
 int actualDirEntries;
 int blocksNeeded;
-int findFreeDE(DE * parent);
-void copyDE(DE* target, DE * resource);
-
+int findFreeDE(DE *parent);
+void copyDE(DE *target, DE *resource);
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -146,77 +144,89 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     return (startBlock);
 }
 
-int fs_setcwd(char *pathname){
+int fs_setcwd(char *pathname)
+{
 
-    int result = parsePath(pathname,ppi);
-    if(result == -2)
+    int result = parsePath(pathname, ppi);
+    if (result == -2)
     {
         printf("\nError: file or path does not exist..\n");
         return -2;
-    }else if (result == -1)
+    }
+    else if (result == -1)
     {
         printf("\nError: invalid input path\n");
         return -1;
-    }else{
-        if(ppi->parent[ppi->index].isDir == 0){
-            printf("\nError: %s is not a directory\n",ppi->lastElement);
+    }
+    else
+    {
+        if (ppi->parent[ppi->index].isDir == 0)
+        {
+            printf("\nError: %s is not a directory\n", ppi->lastElement);
             return -1;
-        }else{
+        }
+        else
+        {
             cwd = &(ppi->parent[ppi->index]);
         }
     }
-
 }
 
-
-int fs_mkdir(const char *pathname, mode_t mode){
+int fs_mkdir(const char *pathname, mode_t mode)
+{
 
     printf("---- inside fs_mkdir() ----\n");
-    int result = parsePath(pathname,ppi);
-    printf("---- the result of parsePath is %d ----\n",result);
-    printf("---- the ppi index is %d ----\n",ppi->index);
+    int result = parsePath(pathname, ppi);
+    printf("---- the result of parsePath is %d ----\n", result);
+    printf("---- the ppi index is %d ----\n", ppi->index);
 
-    if(result == -2){
+    if (result == -2)
+    {
         printf("\nfile or directory does not exist\n");
         return -2;
     }
-    if(result == 1){
+    if (result == 1)
+    {
         printf("\ninvalid path\n");
         return -1;
     }
 
-    if(result == 0){ 
-        
-        if(ppi->index == -1){
-            initDir(50, ppi->parent,512);
+    if (result == 0)
+    {
+
+        if (ppi->index == -1)
+        {
+            initDir(50, ppi->parent, 512);
             // DE * newDir;
             int freeIndex = findFreeDE(ppi->parent);
-            if(freeIndex == -1){
+            if (freeIndex == -1)
+            {
                 printf("error: no more space for new directory\n");
                 return (-1);
             }
-            copyDE(&ppi->parent[freeIndex],newDir);
-            strcpy (ppi->parent[freeIndex].fileName, ppi->lastElement);
-            LBAwrite(ppi->parent,blocksNeeded, ppi->parent[0].location);
+            copyDE(&ppi->parent[freeIndex], newDir);
+            strcpy(ppi->parent[freeIndex].fileName, ppi->lastElement);
+            LBAwrite(ppi->parent, blocksNeeded, ppi->parent[0].location);
             printf("\nsuccessful make dir\n");
             return 0;
-
-        }else{
+        }
+        else
+        {
             // lastElement is already in the parent
-            printf("\n%s is already exsited............\n",ppi->lastElement);
+            printf("\n%s is already exsited............\n", ppi->lastElement);
             return -1;
         }
-        
-       
     }
-
 }
 
 // this function finds the empty entry in the parent directory
-int findFreeDE(DE * parent){
-    int numberofDE = parent[0].size/sizeof(DE);
-    for (int i = 0; i < numberofDE; i++){
-        if(strcmp(parent[i].fileName,"\0") == 0){
+int findFreeDE(DE *parent)
+{
+    int numberofDE = parent[0].size / sizeof(DE);
+    for (int i = 0; i < numberofDE; i++)
+    {
+        if (strcmp(parent[i].fileName, "\0") == 0)
+        {
             return i;
         }
     }
@@ -224,7 +234,8 @@ int findFreeDE(DE * parent){
 }
 
 // this function copis
-void copyDE(DE* target, DE * resource){
+void copyDE(DE *target, DE *resource)
+{
     strcpy(target->fileName, resource->fileName);
     target->location = resource->location;
     target->size = resource->size;
@@ -234,44 +245,57 @@ void copyDE(DE* target, DE * resource){
     target->timeLastModified = resource->timeLastModified;
 }
 // returns 1 if directory, 0 otherwise
-int fs_isDir(char *pathname){
-    int result = parsePath(pathname,ppi);
-    if(result == -2)
+int fs_isDir(char *pathname)
+{
+    int result = parsePath(pathname, ppi);
+    if (result == -2)
     {
         printf("\nError: file or path does not exist..\n");
         return -2;
-    }else if (result == -1)
+    }
+    else if (result == -1)
     {
         printf("\nError: invalid input path\n");
         return -1;
-    }else{
-        if(ppi->parent[ppi->index].isDir == 0){
+    }
+    else
+    {
+        if (ppi->parent[ppi->index].isDir == 0)
+        {
             printf("\nThis file is not a directory\n");
             return 0;
-        }else{
+        }
+        else
+        {
             printf("\nThis file is a directory\n");
             return 1;
         }
     }
 }
 
-
 // return 1 if file, 0 otherwise
-int fs_isFile(char *filename){
-    int result = parsePath(filename,ppi);
-    if(result == -2)
+int fs_isFile(char *filename)
+{
+    int result = parsePath(filename, ppi);
+    if (result == -2)
     {
         printf("\nError: file or path does not exist..\n");
         return -2;
-    }else if (result == -1)
+    }
+    else if (result == -1)
     {
         printf("\nError: invalid input path\n");
         return -1;
-    }else{
-        if(ppi->parent[ppi->index].isDir == 0){
+    }
+    else
+    {
+        if (ppi->parent[ppi->index].isDir == 0)
+        {
             printf("\nThis file is a file\n");
             return 1;
-        }else{
+        }
+        else
+        {
             printf("\nThis file is not a file\n");
             return 0;
         }
@@ -346,11 +370,156 @@ int fs_stat(const char *path, struct fs_stat *buf)
 char *fs_getcwd(char *pathname, size_t size)
 {
     // length of currentPath exceeds size
-    if(strlen(currentPath) > size)
+    if (strlen(currentPath) > size)
     {
         return NULL;
     }
 
-    return currentPath;  
+    return currentPath;
 }
 
+/*  functions needed by cmd_rm   */
+// return 0: success, 1 fail
+int fs_rmdir(const char *pathname)
+{
+    int validPath = parsePath(pathname, ppi);
+
+    if (strcmp(ppi->lastElement, ".") == 0 || strcmp(ppi->lastElement, "..") == 0)
+    {
+        printf("Cannot remove . or ..\n");
+        return 1;
+    }
+
+    if (validPath != 0 || ppi->index == -1 || ppi->parent[ppi->index].isDir != 1)
+    {
+        printf("Invalid directory to remove\n");
+        return 1;
+    }
+
+    int checkVal = checkIfDirEmpty(&ppi->parent[ppi->index]);
+    if (checkVal != 0)
+    {
+        printf("Only empty directory can be removed\n");
+        return 1;
+    }
+
+    freeBlocksDE(&ppi->parent[ppi->index]);
+    markUnusedDE(&ppi->parent[ppi->index]);
+    writeDir(ppi->parent);
+    return 0;
+}
+
+// return 0 success;  1 fail
+int fs_delete(char *filename)
+{
+    int validPath = parsePath(filename, ppi);
+
+    if (strcmp(ppi->lastElement, ".") == 0 || strcmp(ppi->lastElement, "..") == 0)
+    {
+        printf("Cannot remove . or ..\n");
+        return 1;
+    }
+
+    if (validPath != 0 || ppi->index == -1 || ppi->parent[ppi->index].isDir != 0)
+    {
+        printf("Invalid file to remove\n");
+        return 1;
+    }
+
+    freeBlocksDE(&ppi->parent[ppi->index]);
+    markUnusedDE(&ppi->parent[ppi->index]);
+    writeDir(ppi->parent);
+    return 0;
+}
+
+/*  Helper functions for rm   */
+void freeBlocksDE(DE *IndexInParent)
+{
+    // If this function is called
+    // then parsePath() already checked if the DE is valid
+
+    // calculate blocks used
+    int blockCount = (IndexInParent->size + vcb->blockSize - 1) / vcb->blockSize;
+
+    for (int i = IndexInParent->location; i < blockCount; i++)
+    {
+        setBitFree(i);
+    }
+}
+
+void markUnusedDE(DE *IndexInParent)
+{
+    // If this function is called
+    // then parsePath() already checked if the DE is valid
+
+    // Mark unused
+    // DE name as "\0" and 0 for other values
+    strcpy(IndexInParent->fileName, "\0");
+    IndexInParent->size = 0;
+    IndexInParent->location = 0;
+    IndexInParent->isDir = 0;
+    IndexInParent->timeCreated = 0;
+    IndexInParent->timeLastModified = 0;
+    IndexInParent->timeLastAccessed = 0;
+}
+
+int writeDir(DE *parent)
+{
+    // calculate blocks used by parent directory
+    int blockCount = (parent->size + vcb->blockSize - 1) / vcb->blockSize;
+
+    // write parent dir to disk
+    int checkVal = LBAwrite(parent, blockCount, parent->location);
+
+    if (checkVal != blockCount)
+    {
+        printf("\nError: LBAwrite() failed in writeDir(), fsDir.c\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+int checkIfDirEmpty(DE *IndexInParent)
+{
+
+    DE *temp;
+
+    // load directory from disk into temp directory
+    int blockCount = (IndexInParent->size + vcb->blockSize - 1) / vcb->blockSize;
+
+    temp = malloc(blockCount * vcb->blockSize);
+    if (temp == NULL)
+    {
+        printf("Error: malloc() failed in checkIfDirEmpty(),  fsDir.c \n");
+        return -1;
+    }
+
+    int ret = LBAread(temp, blockCount, IndexInParent->location);
+
+    if (ret != blockCount)
+    {
+        printf("Error: LBAread() returned %d in checkIfDirEmpty(),  fsDir.c \n", ret);
+        free(temp);
+        temp = NULL;
+        return -1;
+    }
+
+    int entryCount = temp[0].size / sizeof(DE);
+    int isEmpty = 0; // 0: empty;  1: not empty
+
+    // start from 2, since index 0 is . and index 1 is ..
+    // check if there is a used DE, and return 1, if not return 0
+    for (int i = 2; i < entryCount; i++)
+    {
+        // Check if a DE is used
+        if (strcmp(temp[i].fileName, "\0") != 0)
+        {
+            isEmpty = 1;
+        }
+    }
+
+    free(temp);
+    temp = NULL;
+    return isEmpty;
+}
