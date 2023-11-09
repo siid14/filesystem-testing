@@ -109,16 +109,21 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 
 	printf("\n------------------TEST-------------------------------\n");
+	 
+	//Test md, rm, pwd
+	for( int i = 0; i<5; i++)
+	{
+		printf("rootDir[%d] is: %s\n", i, rootDir[i].fileName);
+	}
+
 
 	// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 
 	// printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
 	// printf("\n-------------------------------------------------\n");
 
-	// char path[] = "/dir3";
+	// char path[] = "/test1";
 	// int checkVal = parsePath(path, ppi);
-	// printf("\n\n-------------------   OUTSIDE parsePath() --------------------\n");
-
 	// printf("\nAfter parsePath()\n");
 	// printf("Return value of parsePath: %d\n", checkVal);
 	// printf("Parent dir: %s\n", ppi->parent->fileName);
