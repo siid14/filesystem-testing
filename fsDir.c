@@ -161,6 +161,7 @@ int fs_setcwd(char *pathname){
             return -1;
         }else{
             cwd = &(ppi->parent[ppi->index]);
+            return 0;
         }
     }
 
