@@ -25,8 +25,10 @@
 DE *newDir;
 int actualDirEntries;
 int blocksNeeded;
+char * currentpath = "/";
 int findFreeDE(DE *parent);
 void copyDE(DE *target, DE *resource);
+char* cleanPath(char* path);
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -147,6 +149,8 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
 int fs_setcwd(char *pathname)
 {
 
+    printf("------setcwd function -----");
+    printf("path name is %s", pathname);
     int result = parsePath(pathname, ppi);
     if (result == -2)
     {
@@ -167,9 +171,83 @@ int fs_setcwd(char *pathname)
         }
         else
         {
-            cwd = &(ppi->parent[ppi->index]);
+            free(cwd);
+            loadDir(&cwd,&(ppi->parent[ppi->index]));
+         
+            if(pathname[0] == '/'){
+                strcpy(currentPath,pathname);
+                currentPath = cleanPath(currentPath);
+            }else{
+                strcat(currentPath,"/");
+                strcat(currentPath,pathname);
+                currentPath = cleanPath(currentPath);
+            }
+            return 0;
         }
     }
+}
+
+char* cleanPath(char* path){
+
+    printf(" ----in cleanPath function ----");
+
+    char *tokens[100];  
+
+    // Tokenize the string
+    char *token = strtok(path, "/");
+    int i = 0;
+
+    // Loop through the tokens and store them in the array
+    while (token != NULL) {
+        if(strcmp(token,"..") == 0){
+            if(i == 0){
+                i = 0;
+            }else{
+                i --;
+            }
+        }else if (strcmp(token,".") == 0)
+        {
+            i = i;
+        }else{
+            tokens[i] = token;
+            i++;
+        }    
+        
+        token = strtok(NULL, "/");
+    }
+
+    // Print the tokens
+    printf("\nTokens:\n");
+    for (int j = 0; j < i; j++) {
+        printf("\ntolens[%d]: %s\n", j,tokens[j]);
+    }
+
+    size_t totalLength = 0;
+    for (int j = 0; j < i; j++) {
+        totalLength += strlen(tokens[j]);
+    }
+
+    // Add space for the separator '/' and null terminator
+    totalLength += i - 1;
+
+    // Create a buffer to store the concatenated string
+    char* result = (char*)malloc(totalLength + 1);
+
+    result[0] = '\0';
+
+    // Concatenate the tokens with '/'
+    // strcpy(result, "/");
+    for (int j = 0; j < i; j++) {
+        strcat(result, "/");
+        printf(" catenate / ");
+        strcat(result, tokens[j]);
+        printf(" catenate %s ",tokens[j] );
+    }
+
+    // Print the result
+    printf("Concatenated string: %s\n", result);
+
+    return result;
 }
 
 int fs_mkdir(const char *pathname, mode_t mode)
