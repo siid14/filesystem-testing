@@ -19,6 +19,7 @@
 #include "fsDir.h"
 #include "fsParse.h"
 #include "fsLow.h"
+#include "mfs.h"
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -140,88 +141,130 @@ fdDir *fs_opendir(const char *pathname)
     {
     int result = parsePath(pathname, ppi);
 
-    if (result == -2) 
+    if (result == -2)
         {
         printf("\nError: file or path does not exist..\n");
         return NULL;
-        }
+        } 
     else if (result == -1) 
         {
-        printf("\nError: invalid input path\n");
+        printf("\nError: invalid input pathname\n");
         return NULL;
         }
-    else if (ppi->parent[ppi->index].isDir == 0)
+    else 
         {
-        printf("\nError: %s is not a directory\n", ppi->lastElement);
-        return NULL;
-        }
+        if (ppi->parent[ppi->index].isDir == 0)
+            {
+            printf("\nError: %s is not a directory\n", ppi->lastElement);
+            return NULL;
+            }
+        else
+            {
+            //load the last element (current directory) if not already loaded
+            if (ppi->index == -1 || strcmp(ppi->parent[ppi->index].fileName, ppi->lastElement) != 0)
+                {
+                DE *temp;
+                int loadResult = loadDir(&temp, &ppi->parent[ppi->index]);
+                //if failed to load directory 
+                if (loadResult == -1) {
+                    return NULL;
+                }
 
-    fdDir *dirp = (fdDir *)malloc(sizeof(fdDir));
-    if (dirp == NULL)
-        {
-        return NULL;  //memory allocation failed
-        }
+                ppi->parent = temp;
+                ppi->index = findEntryInDir(ppi->parent, ppi->lastElement);
+                //if failed to find directory
+                if (ppi->index == -1) 
+                    {
+                    printf("\nError: Unable to find %s in the directory\n", ppi->lastElement);
+                    free(temp);
+                    return NULL;
+                    }
+                }
 
-    dirp->dirEntryPosition = 0;
-    dirp->directory = &ppi->parent[ppi->index];
-    
-    dirp->di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
-    if (dirp->di == NULL)
-        {
-        free(dirp);
-        return NULL;  //memory allocation failed
-        }
-    
-    dirp->di->d_reclen = sizeof(struct fs_diriteminfo);
+            fdDir *dirp = malloc(sizeof(fdDir));
+            if (dirp == NULL) 
+                {
+                printf("Error: malloc() failed in fs_opendir\n");
+                return NULL;
+                }
 
-    return dirp;
+            dirp->d_reclen = 0;
+            dirp->dirEntryPosition = 0;
+            dirp->di = NULL;
+
+            return dirp;
+            }
+        }
     }
 
 //...when calling readdir, it's gonna give us the 1st entry (.) and the 2nd entry...
 struct fs_diriteminfo *fs_readdir(fdDir *dirp)
     {
+    //check if invalid directory or directory entry position
     if (dirp == NULL || dirp->directory == NULL) 
         {
         return NULL;
         }
+    
+    //check if the current position is within the valid range of directory entries
+    if (dirp->dirEntryPosition < 0 || dirp->dirEntryPosition >= dirp->directory[0].size / sizeof(DE))
+        {
+        return NULL;
+        }
 
-    // Check if we have reached the end of the director
-    //...
+    //check if we have reached the end of the directory
+    if (dirp->dirEntryPosition >= dirp->directory[0].size / sizeof(DE))
+        {
+        return NULL;
+        }
 
-    fs_diriteminfo *di = malloc(sizeof(fs_diriteminfo));
+    struct fs_diriteminfo *di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
     if (di == NULL)
         {
         printf("Error: malloc() failed for fs_diriteminfo\n");
         return NULL;
         }
 
-    int entries = dirp->directory->size / sizeof(DE);
+    //handle special cases for "." and ".."
+    if (dirp->dirEntryPosition == 0)
+        {
+        di->d_reclen = sizeof(struct fs_diriteminfo);
+        di->fileType = FT_DIRECTORY; 
+        strcpy(di->d_name, ".");
 
-    for (int i = dirp->dirEntryPosition; i < maxEntries; i++)
+        dirp->dirEntryPosition++;
+        return di;
+        }
+    else if (dirp->dirEntryPosition == 1)
+        {
+        di->d_reclen = sizeof(struct fs_diriteminfo);
+        di->fileType = FT_DIRECTORY; 
+        strcpy(di->d_name, "..");
+
+        dirp->dirEntryPosition++;
+
+        return di;
+        }
+
+    // Regular case for other directory entries
+    int entries = dirp->directory[0].size / sizeof(DE);
+    for (int i = dirp->dirEntryPosition; i < entries; i++)
         {
         if (isUsedEntry(&(dirp->directory[i])))
             {
-            strcpy(dirp->di->name, dirp->directory[i].name);
-            setType(&dirp->di->type, &(dirp->directory[i]));
+            di->d_reclen = sizeof(struct fs_diriteminfo);
+            di->fileType = (dirp->directory[i].isDir) ? FT_DIRECTORY : FT_REGFILE;
+            strcpy(di->d_name, dirp->directory[i].fileName);
                 
             dirp->dirEntryPosition = i + 1;
             return di;
             }
         }
-
+    free(di);
     return (NULL);
     }
 
-int isUsedEntry(DE *entry)
+int isUsedEntry(const DE *entry)
     {
-    return (entry && entry->fileName[0] != '\0');
+    return (entry->isDir || entry->fileName[0] != '\0');
     }
-
-void setType(unsigned char *type, DE *entry)
-{
-    if (entry->isDir){
-        *type = FT_DIRECTORY;
-    } else {
-        *type = FT_REGFILE;
-    }
-}

@@ -21,17 +21,17 @@ typedef struct
 
 int initDir(int initialDirEntries, DE *parent);
 
-int main()
-{
+// int main()
+// {
 
-    DE *parent;
+//     DE *parent;
 
-    int retVal = initDir(5, parent);
-    printf("\n--------- OUTSIDE THE initDir function ---------\n");
-    printf("return value from initDir: %d\n", retVal);
+//     int retVal = initDir(5, parent);
+//     printf("\n--------- OUTSIDE THE initDir function ---------\n");
+//     printf("return value from initDir: %d\n", retVal);
 
-    return 0;
-}
+//     return 0;
+// }
 
 int initDir(int initialDirEntries, DE *parent)
 {

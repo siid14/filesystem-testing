@@ -23,5 +23,6 @@
 // the third parameter is the bytes per block
 // for root directory, the parent should be null.
 int initDir(int DEcount, DE *parent, int blockSize);
+int isUsedEntry(const DE *entry);
 
 #endif
