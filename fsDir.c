@@ -149,9 +149,10 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
 int fs_setcwd(char *pathname)
 {
 
-    printf("------setcwd function -----");
-    printf("path name is %s", pathname);
+    // printf("------setcwd function -----");
+    // printf("path name is %s", pathname);
     int result = parsePath(pathname, ppi);
+    // printf("result from parsePath is %d", result);
     if (result == -2)
     {
         printf("\nError: file or path does not exist..\n");
@@ -177,10 +178,12 @@ int fs_setcwd(char *pathname)
             if(pathname[0] == '/'){
                 strcpy(currentPath,pathname);
                 currentPath = cleanPath(currentPath);
+                // printf("\n----- inside of setcwd function, the currentPath is %s", currentPath);
             }else{
                 strcat(currentPath,"/");
                 strcat(currentPath,pathname);
                 currentPath = cleanPath(currentPath);
+                // printf("\n----- inside of setcwd function, the currentPath is %s", currentPath);
             }
             return 0;
         }
@@ -189,14 +192,17 @@ int fs_setcwd(char *pathname)
 
 char* cleanPath(char* path){
 
-    printf(" ----in cleanPath function ----");
+    // printf(" ----in cleanPath function ----");
 
     char *tokens[100];  
 
     // Tokenize the string
     char *token = strtok(path, "/");
+
+    // the index of path tokens arrays
     int i = 0;
 
+ 
     // Loop through the tokens and store them in the array
     while (token != NULL) {
         if(strcmp(token,"..") == 0){
@@ -217,10 +223,25 @@ char* cleanPath(char* path){
     }
 
     // Print the tokens
-    printf("\nTokens:\n");
-    for (int j = 0; j < i; j++) {
-        printf("\ntolens[%d]: %s\n", j,tokens[j]);
+    // printf("\nTokens:\n");
+    // printf("\nnumber of i is %d:\n",i);
+
+    if(i == 0){
+        // printf("----inside i == 0 ------");
+        char* result = (char*) malloc(2);
+        if (result != NULL) {
+
+        // Set the content of the memory to "/"
+        strcpy(result, "/");
+            // printf("----inside i == 0 result is %s------",result);
+
+        // Return the dynamically allocated string
+            return result;
     }
+    }
+    // for (int j = 0; j < i; j++) {
+    //     printf("\ntolens[%d]: %s\n", j,tokens[j]);
+    // }
 
     size_t totalLength = 0;
     for (int j = 0; j < i; j++) {
@@ -239,13 +260,13 @@ char* cleanPath(char* path){
     // strcpy(result, "/");
     for (int j = 0; j < i; j++) {
         strcat(result, "/");
-        printf(" catenate / ");
+        // printf(" catenate / ");
         strcat(result, tokens[j]);
-        printf(" catenate %s ",tokens[j] );
+        // printf(" catenate %s ",tokens[j] );
     }
 
     // Print the result
-    printf("Concatenated string: %s\n", result);
+    // printf("Concatenated string: %s\n", result);
 
     return result;
 }
