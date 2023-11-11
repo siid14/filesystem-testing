@@ -25,7 +25,7 @@
 #include "fsDir.h"
 #include "fsFree.h"
 #include "fsParse.h"
-#include "fsFile.h"
+
 
 // initial number of directory entries in each directory
 #define DEFAULT_DE_COUNT 50
