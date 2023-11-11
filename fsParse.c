@@ -23,8 +23,8 @@
 int parsePath(const char *path, ppInfo *ppi)
 {
 
-    printf("\n\n--------------   START parsePath() ---------------\n");
-    printf("\npath: %s\n", path);
+    // printf("\n\n--------------   START parsePath() ---------------\n");
+    // printf("\npath: %s\n", path);
 
     char *mutablePath = strdup(path);
     if (mutablePath == NULL)
@@ -62,7 +62,7 @@ int parsePath(const char *path, ppInfo *ppi)
     token1 = strtok_r(mutablePath, "/", &savePtr);
 
     // printf("parent[0]: %s\n", parent[0].fileName);
-    printf("token1: %s\n", token1);
+    // printf("token1: %s\n", token1);
 
     if (token1 == NULL)
     {
@@ -73,34 +73,34 @@ int parsePath(const char *path, ppInfo *ppi)
             ppi->index = -1;
             ppi->lastElement = NULL;
 
-            printf("\n\nUpdated parse path info\n");
-            printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
-            printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
-            printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
-            printf("Last element: %s\n", ppi->lastElement);
-            printf("Index of last element in parent: %d\n", ppi->index);
+            // printf("\n\nUpdated parse path info\n");
+            // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+            // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+            // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+            // printf("Last element: %s\n", ppi->lastElement);
+            // printf("Index of last element in parent: %d\n", ppi->index);
 
-            printf("\n\n--------------   END parsePath() ---------------\n");
+            // printf("\n\n--------------   END parsePath() ---------------\n");
             return (0);
         }
 
-        printf("\n\n--------------   END parsePath() ---------------\n");
+        // printf("\n\n--------------   END parsePath() ---------------\n");
         return (-1);
     }
 
     while (token1 != NULL)
     {
-        printf("\n\n Inside while (token1 != NULL)\n");
+        // printf("\n\n Inside while (token1 != NULL)\n");
 
         index = findEntryInDir(parent, token1);
         // printf("\n---- OUTSIDE findEntryDir() ----\n");
 
         token2 = strtok_r(NULL, "/", &savePtr);
 
-        printf("\n\ntoken1: %s\n", token1);
-        printf("index of token1: %d\n", index);
-        printf("parent[%d].isDir: %d\n", index ,parent[index].isDir);
-        printf("token2: %s\n", token2);
+        // printf("\n\ntoken1: %s\n", token1);
+        // printf("index of token1: %d\n", index);
+        // printf("parent[%d].isDir: %d\n", index ,parent[index].isDir);
+        // printf("token2: %s\n", token2);
        
 
         if (token2 == NULL)
@@ -110,14 +110,14 @@ int parsePath(const char *path, ppInfo *ppi)
             ppi->lastElement = strdup(token1);
             ppi->index = index;
 
-            printf("\n\nUpdated parse path info\n");
-            printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
-            printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
-            printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
-            printf("Last element: %s\n", ppi->lastElement);
-            printf("Index of last element in parent: %d\n", ppi->index);
+            // printf("\n\nUpdated parse path info\n");
+            // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+            // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+            // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+            // printf("Last element: %s\n", ppi->lastElement);
+            // printf("Index of last element in parent: %d\n", ppi->index);
 
-            printf("\n\n--------------   END parsePath() ---------------\n");
+            // printf("\n\n--------------   END parsePath() ---------------\n");
             return (0);
         }
 
@@ -125,7 +125,7 @@ int parsePath(const char *path, ppInfo *ppi)
         {
             printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
 
-            printf("\n\n--------------   END parsePath() ---------------\n");
+            // printf("\n\n--------------   END parsePath() ---------------\n");
 
             return (-2);
         }
@@ -134,7 +134,7 @@ int parsePath(const char *path, ppInfo *ppi)
         {
             printf("[%s] in Parent[%s] is not a directory", parent[index].fileName, parent[0].fileName);
 
-            printf("\n\n--------------   END parsePath() ---------------\n");
+            // printf("\n\n--------------   END parsePath() ---------------\n");
 
             return (-2);
         }
@@ -143,7 +143,7 @@ int parsePath(const char *path, ppInfo *ppi)
 
         if (temp == NULL)
         {
-            printf("\n\n--------------   END parsePath() ---------------\n");
+            // printf("\n\n--------------   END parsePath() ---------------\n");
             return (-1);
         }
 
@@ -157,7 +157,7 @@ int parsePath(const char *path, ppInfo *ppi)
         token1 = token2;
 
         //printf("parent[0]: %s\n", parent[0].fileName);
-        printf("\n\ntoken1: %s\n", token1);
+        // printf("\n\ntoken1: %s\n", token1);
     }
 }
 

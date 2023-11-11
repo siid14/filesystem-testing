@@ -25,10 +25,10 @@
 DE *newDir;
 int actualDirEntries;
 int blocksNeeded;
-char * currentpath = "/";
+char *currentpath = "/";
 int findFreeDE(DE *parent);
 void copyDE(DE *target, DE *resource);
-char* cleanPath(char* path);
+char *cleanPath(char *path);
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -173,15 +173,18 @@ int fs_setcwd(char *pathname)
         else
         {
             free(cwd);
-            loadDir(&cwd,&(ppi->parent[ppi->index]));
-         
-            if(pathname[0] == '/'){
-                strcpy(currentPath,pathname);
+            loadDir(&cwd, &(ppi->parent[ppi->index]));
+
+            if (pathname[0] == '/')
+            {
+                strcpy(currentPath, pathname);
                 currentPath = cleanPath(currentPath);
                 // printf("\n----- inside of setcwd function, the currentPath is %s", currentPath);
-            }else{
-                strcat(currentPath,"/");
-                strcat(currentPath,pathname);
+            }
+            else
+            {
+                strcat(currentPath, "/");
+                strcat(currentPath, pathname);
                 currentPath = cleanPath(currentPath);
                 // printf("\n----- inside of setcwd function, the currentPath is %s", currentPath);
             }
@@ -190,11 +193,12 @@ int fs_setcwd(char *pathname)
     }
 }
 
-char* cleanPath(char* path){
+char *cleanPath(char *path)
+{
 
     // printf(" ----in cleanPath function ----");
 
-    char *tokens[100];  
+    char *tokens[100];
 
     // Tokenize the string
     char *token = strtok(path, "/");
@@ -202,23 +206,30 @@ char* cleanPath(char* path){
     // the index of path tokens arrays
     int i = 0;
 
- 
     // Loop through the tokens and store them in the array
-    while (token != NULL) {
-        if(strcmp(token,"..") == 0){
-            if(i == 0){
+    while (token != NULL)
+    {
+        if (strcmp(token, "..") == 0)
+        {
+            if (i == 0)
+            {
                 i = 0;
-            }else{
-                i --;
             }
-        }else if (strcmp(token,".") == 0)
+            else
+            {
+                i--;
+            }
+        }
+        else if (strcmp(token, ".") == 0)
         {
             i = i;
-        }else{
+        }
+        else
+        {
             tokens[i] = token;
             i++;
-        }    
-        
+        }
+
         token = strtok(NULL, "/");
     }
 
@@ -226,25 +237,28 @@ char* cleanPath(char* path){
     // printf("\nTokens:\n");
     // printf("\nnumber of i is %d:\n",i);
 
-    if(i == 0){
+    if (i == 0)
+    {
         // printf("----inside i == 0 ------");
-        char* result = (char*) malloc(2);
-        if (result != NULL) {
+        char *result = (char *)malloc(2);
+        if (result != NULL)
+        {
 
-        // Set the content of the memory to "/"
-        strcpy(result, "/");
+            // Set the content of the memory to "/"
+            strcpy(result, "/");
             // printf("----inside i == 0 result is %s------",result);
 
-        // Return the dynamically allocated string
+            // Return the dynamically allocated string
             return result;
-    }
+        }
     }
     // for (int j = 0; j < i; j++) {
     //     printf("\ntolens[%d]: %s\n", j,tokens[j]);
     // }
 
     size_t totalLength = 0;
-    for (int j = 0; j < i; j++) {
+    for (int j = 0; j < i; j++)
+    {
         totalLength += strlen(tokens[j]);
     }
 
@@ -252,13 +266,14 @@ char* cleanPath(char* path){
     totalLength += i - 1;
 
     // Create a buffer to store the concatenated string
-    char* result = (char*)malloc(totalLength + 1);
+    char *result = (char *)malloc(totalLength + 1);
 
     result[0] = '\0';
 
     // Concatenate the tokens with '/'
     // strcpy(result, "/");
-    for (int j = 0; j < i; j++) {
+    for (int j = 0; j < i; j++)
+    {
         strcat(result, "/");
         // printf(" catenate / ");
         strcat(result, tokens[j]);
