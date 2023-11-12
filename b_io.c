@@ -11,8 +11,6 @@
  * Description: Basic File System - Key File I/O Operations
  *
  **************************************************************/
-// * burning comment
-// * burning comment 2
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h> // for malloc
@@ -139,20 +137,22 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	if (fileSize + count > fcbArray[fd].fileInfo->size)
 	{
 		printf("\nfile not enough space,reallocate the memory\n");
-		int currentBlockNumber = (fcbArray[fd].fileInfo->size + 
-								B_CHUNK_SIZE - 1)/B_CHUNK_SIZE;
+		int currentBlockNumber = (fcbArray[fd].fileInfo->size +
+								  B_CHUNK_SIZE - 1) /
+								 B_CHUNK_SIZE;
 		int newBlockNumber = currentBlockNumber + extend_block_count;
 		int newLocation = allocBlocksCont(newBlockNumber);
-		if(newLocation == -1){
+		if (newLocation == -1)
+		{
 			printf("error: no enough space for file");
 			return (-1);
 		}
-		for(int i = 0; i < currentBlockNumber; i++ ){
+		for (int i = 0; i < currentBlockNumber; i++)
+		{
 			setBitFree(fcbArray[fd].fileInfo->location + 1);
 		}
 
-		fcbArray[fd].fileInfo->location = newLocation;	
-	
+		fcbArray[fd].fileInfo->location = newLocation;
 	}
 
 	// number of bytes available to copy from buffer
@@ -212,12 +212,10 @@ int b_write(b_io_fd fd, char *buffer, int count)
 		}
 	}
 
-
 	bytesReturned = part1 + part2 + part3;
 	fcbArray[fd].fileInfo->size += bytesReturned;
-	
-	return (bytesReturned); // Change this
 
+	return (bytesReturned); // Change this
 }
 
 // Interface to read a buffer
