@@ -40,6 +40,7 @@ typedef struct DE
 {
   char fileName[MAX_FILENAME_LEN + 1]; // file name cstring, +1 for the NULL
   unsigned long size;                  // size of the directory/file in bytes
+  unsigned long fileSize;
   unsigned int location;               // starting block number of the directory/file
 
   unsigned int isDir; // flag indicating if this entry is a directory (1) or a file (0)
