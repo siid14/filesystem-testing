@@ -21,16 +21,23 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "b_io.h"
+#include "mfs.h"
+#include "fsFree.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
+#define extend_block_count 10
 
 typedef struct b_fcb
 {
 	/** TODO add al the information you need in the file control block **/
+	DE *fileInfo;
+	// extent * ExtentTable;
 	char *buf;	// holds the open file buffer
 	int index;	// holds the current position in the buffer
 	int buflen; // holds how many valid bytes are in the buffer
+	int currentBlock;
+	int accessMode;
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -54,7 +61,7 @@ b_io_fd b_getFCB()
 {
 	for (int i = 0; i < MAXFCBS; i++)
 	{
-		if (fcbArray[i].buff == NULL)
+		if (fcbArray[i].buf == NULL)
 		{
 			return i; // Not thread safe (But do not worry about it for this assignment)
 		}
@@ -98,8 +105,17 @@ int b_seek(b_io_fd fd, off_t offset, int whence)
 }
 
 // Interface to write function
+// fd is the destinatation file descriptor
+// buffer contains the contents to write
+// count is the number of byte needed to write
 int b_write(b_io_fd fd, char *buffer, int count)
 {
+	int bytesWrite;				  // for our writes
+	int bytesReturned;			  // what we will return
+	int part1, part2, part3;	  // holds the three potential bytes
+	int numberOfBlocksToCopy;	  // holds the number of whole blocks
+	int remainingBytesInMyBuffer; // holds how many bytes remaining in the buffer
+
 	if (startup == 0)
 		b_init(); // Initialize our system
 
@@ -109,7 +125,99 @@ int b_write(b_io_fd fd, char *buffer, int count)
 		return (-1); // invalid file descriptor
 	}
 
-	return (0); // Change this
+	// check if we have the write mode
+	if ((fcbArray[fd].accessMode & (O_RDWR | O_WRONLY)) == 0)
+	{
+		// Code inside the block will be executed if O_RDONLY is set in accessMode
+		printf("[ERROR] does not have access to write!\n");
+		return -1;
+	}
+
+	// check if the current size is enough for extra count bytes
+	off_t fileSize = seek(fd, 0, SEEK_END);
+
+	if (fileSize + count > fcbArray[fd].fileInfo->size)
+	{
+		printf("\nfile not enough space,reallocate the memory\n");
+		int currentBlockNumber = (fcbArray[fd].fileInfo->size + 
+								B_CHUNK_SIZE - 1)/B_CHUNK_SIZE;
+		int newBlockNumber = currentBlockNumber + extend_block_count;
+		int newLocation = allocBlocksCont(newBlockNumber);
+		if(newLocation == -1){
+			printf("error: no enough space for file");
+			return (-1);
+		}
+		for(int i = 0; i < currentBlockNumber; i++ ){
+			setBitFree(fcbArray[fd].fileInfo->location + 1);
+		}
+
+		fcbArray[fd].fileInfo->location = newLocation;	
+	
+	}
+
+	// number of bytes available to copy from buffer
+	remainingBytesInMyBuffer = B_CHUNK_SIZE - fcbArray[fd].index;
+
+	// Part1 is the first copy of data which will be from the buffer
+	// it will be the lesser of the requested amount of the number
+	if (count <= remainingBytesInMyBuffer)
+	{
+		part1 = count;
+		part2 = 0;
+		part3 = 0;
+	}
+	else
+	{
+		part1 = remainingBytesInMyBuffer;
+
+		// part 1 is not enough
+		part3 = count - remainingBytesInMyBuffer;
+		numberOfBlocksToCopy = part3 / B_CHUNK_SIZE;
+		part2 = numberOfBlocksToCopy * B_CHUNK_SIZE;
+
+		// reduce part 3 by the number of bytes that can be copied
+		// part 3 at this point must be less than the block size
+		part3 = part3 - part2;
+	}
+
+	if (part1 > 0)
+	{
+		memcpy(fcbArray[fd].buf + fcbArray[fd].index, buffer, part1);
+		fcbArray[fd].index = fcbArray[fd].index + part1;
+	}
+
+	if (part2 > 0)
+	{
+		// printf("[debug] inside part 2\n");
+		bytesWrite = LBAWrite(buffer + part1, numberOfBlocksToCopy,
+							  fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+		fcbArray[fd].currentBlock += numberOfBlocksToCopy;
+		part2 = bytesWrite * B_CHUNK_SIZE;
+	}
+
+	if (part3 > 0)
+	{
+		// printf("[debug] inside part 3\n");
+		memcpy(fcbArray[fd].buf + fcbArray[fd].index, buffer + part1 + part2, part3);
+		fcbArray[fd].index += part3;
+		// printf("[debug] bufIndex: %d\n", fcbArray[fd].bufIndex);
+		// printf("[debug] my current buffer: %s\n", fcbArray[fd].buf);
+		if (fcbArray[fd].index == B_CHUNK_SIZE - 1)
+		{
+			// printf("[debug] block is full\n");
+			// printf("[debug] buf: %s\n", fcbArray[fd].buf);
+			LBAwrite(fcbArray[fd].buf, 1, fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+			fcbArray[fd].currentBlock += 1;
+			fcbArray[fd].index = 0;
+		}
+	}
+
+
+	bytesReturned = part1 + part2 + part3;
+	fcbArray[fd].fileInfo->size += bytesReturned;
+	
+	return (bytesReturned); // Change this
+
 }
 
 // Interface to read a buffer
