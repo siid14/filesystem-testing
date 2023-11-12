@@ -281,6 +281,8 @@ extent *allocateBlocksExt(int required, int minPerExtent){
     }
     }
 }
+
+
 void releaseBlockInOneExt(int start, int count){
     for(int i = 0; i < count; i ++){
         setBitFree(start + i);
