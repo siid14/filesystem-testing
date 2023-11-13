@@ -149,7 +149,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
 
 int fs_setcwd(char *pathname)
 {
-  
+
     // printf("------setcwd function -----");
     // printf("path name is %s", pathname);
     int result = parsePath(pathname, ppi);
@@ -395,12 +395,12 @@ int fs_isDir(char *pathname)
     {
         if (ppi->parent[ppi->index].isDir == 0)
         {
-            printf("\nThis file is not a directory\n");
+            // printf("\nThis file is not a directory\n");
             return 0;
         }
         else
         {
-            printf("\nThis file is a directory\n");
+            // printf("\nThis file is a directory\n");
             return 1;
         }
     }
@@ -424,12 +424,12 @@ int fs_isFile(char *filename)
     {
         if (ppi->parent[ppi->index].isDir == 0)
         {
-            printf("\nThis file is a file\n");
+            // printf("\nThis file is a file\n");
             return 1;
         }
         else
         {
-            printf("\nThis file is not a file\n");
+            // printf("\nThis file is not a file\n");
             return 0;
         }
     }
@@ -438,7 +438,7 @@ int fs_isFile(char *filename)
 // this function is used to close a directory after it has been read
 int fs_closedir(fdDir *dirp)
 {
-    //printf("\n\n-------- START fs_closedir() --------\n");
+    // printf("\n\n-------- START fs_closedir() --------\n");
 
     if (dirp == NULL)
     {
@@ -451,14 +451,14 @@ int fs_closedir(fdDir *dirp)
     free(dirp);
     // set the directory pointer to NULL to avoid pointer issues
     dirp = NULL;
-    //printf("Directory pointer set up to NULL -- Directory closed successfully\n");
-    //printf("------ END fs_closedir() -----\n");
+    // printf("Directory pointer set up to NULL -- Directory closed successfully\n");
+    // printf("------ END fs_closedir() -----\n");
     return 0;
 }
 
 int fs_stat(const char *path, struct fs_stat *buf)
 {
-   // printf("\n\n-------- START fs_stat() --------\n");
+    // printf("\n\n-------- START fs_stat() --------\n");
 
     if (path == NULL || ppi == NULL || buf == NULL)
     {
@@ -495,7 +495,7 @@ int fs_stat(const char *path, struct fs_stat *buf)
     buf->st_modtime = entry->timeLastModified;    // time of last modification
     buf->st_createtime = entry->timeCreated;      // time of last status change
 
-   // printf("\n\n-------- END fs_stat() --------\n");
+    // printf("\n\n-------- END fs_stat() --------\n");
 
     return 0;
 }
@@ -699,8 +699,8 @@ DE *loadDirLocation(int startBlock)
 fdDir *fs_opendir(const char *pathname)
 {
 
-    //printf("\n\n----    In opendir()    ----\n");
-    //printf("the path is: %s\n", pathname);
+    // printf("\n\n----    In opendir()    ----\n");
+    // printf("the path is: %s\n", pathname);
     int checkVal = parsePath(pathname, ppi);
 
     // Case: / is the path, load root dir
@@ -708,7 +708,6 @@ fdDir *fs_opendir(const char *pathname)
     {
         // printf("inside / path\n");
         DE *temp = loadRootDir(DEFAULT_DE_COUNT);
-
 
         fdDir *fdd = malloc(sizeof(fdDir));
 
