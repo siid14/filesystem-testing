@@ -345,9 +345,55 @@ int cmd_cp(int argcnt, char *argvec[])
  ****************************************************/
 int cmd_mv(int argcnt, char *argvec[])
 {
+// **** TODO ****  For you to implement
 #if (CMDMV_ON == 1)
-	return -99;
-	// **** TODO ****  For you to implement
+	int testfs_src_fd;
+	int testfs_dest_fd;
+	char *src;
+	char *dest;
+	int readcnt;
+	char buf[BUFFERLEN];
+
+	switch (argcnt)
+	{
+	case 3:
+		src = argvec[1];
+		dest = argvec[2];
+		break;
+
+	default:
+		printf("Usage: mv srcFile destDir\n");
+		return (-1);
+	}
+
+	// Check if the source and destination is valid
+	if (fs_isFile(src) != 1)
+	{
+		printf("Source is not a file\n");
+		return (-1);
+	}
+
+	if(fs_isDir(dest) != 1)
+	{
+		printf("Destination is not a directory\n");
+		return (-1);
+	}
+
+	testfs_src_fd = b_open(src, O_RDONLY);
+	testfs_dest_fd = b_open(dest, O_WRONLY | O_CREAT | O_TRUNC);
+	do
+	{
+		readcnt = b_read(testfs_src_fd, buf, BUFFERLEN);
+		b_write(testfs_dest_fd, buf, readcnt);
+	} while (readcnt == BUFFERLEN);
+	b_close(testfs_src_fd);
+	b_close(testfs_dest_fd);
+
+	if (strcmp(src, dest) != 0)
+	{
+		fs_delete(src);
+	}
+
 #endif
 	return 0;
 }
