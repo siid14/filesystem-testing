@@ -21,6 +21,9 @@
 #include "b_io.h"
 #include "mfs.h"
 #include "fsFree.h"
+#include "fsParse.h"
+#include "fsDir.h"
+#include "fsLow.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
@@ -36,6 +39,7 @@ typedef struct b_fcb
 	int buflen; // holds how many valid bytes are in the buffer
 	int currentBlock;
 	int accessMode;
+	char *path; // points to the path passed to b_open()
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -102,6 +106,7 @@ int b_seek(b_io_fd fd, off_t offset, int whence)
 	return (0); // Change this
 }
 
+/*
 // Interface to write function
 // fd is the destinatation file descriptor
 // buffer contains the contents to write
@@ -189,7 +194,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	if (part2 > 0)
 	{
 		// printf("[debug] inside part 2\n");
-		bytesWrite = LBAWrite(buffer + part1, numberOfBlocksToCopy,
+		bytesWrite = LBAwrite(buffer + part1, numberOfBlocksToCopy,
 							  fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
 		fcbArray[fd].currentBlock += numberOfBlocksToCopy;
 		part2 = bytesWrite * B_CHUNK_SIZE;
@@ -217,6 +222,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 
 	return (bytesReturned); // Change this
 }
+*/
 
 // Interface to read a buffer
 
@@ -255,4 +261,45 @@ int b_read(b_io_fd fd, char *buffer, int count)
 // Interface to Close the file
 int b_close(b_io_fd fd)
 {
+	// write unused buffer
+	if (fcbArray[fd].index < B_CHUNK_SIZE)
+	{
+		char *temp = malloc(B_CHUNK_SIZE);
+		memcpy(temp, fcbArray[fd].buf, fcbArray[fd].index + 1);
+		LBAwrite(temp, 1, fcbArray[fd].fileInfo->location + fcbArray[fd].currentBlock);
+		free(temp);
+	}
+
+	// update parent DEs
+	int validPath = parsePath(fcbArray[fd].path, ppi);
+
+	if (validPath != 0)
+	{
+		printf("In b_open(), parsePath() return invalid\n");
+		return 1;
+	}
+
+	int freeIndex = findFreeDE(ppi->parent);
+
+	strcpy(ppi->parent[freeIndex].fileName, ppi->lastElement);
+	ppi->parent[freeIndex].size = fcbArray[fd].fileInfo->size;
+	ppi->parent[freeIndex].isDir = fcbArray[fd].fileInfo->isDir;
+	ppi->parent[freeIndex].location = fcbArray[fd].fileInfo->location;
+
+	int blockCount = (ppi->parent->size + vcb->blockSize - 1) / vcb->blockSize;
+
+	// write parent dir to disk
+	int checkVal = LBAwrite(ppi->parent, blockCount, ppi->parent->location);
+
+	if (checkVal != blockCount)
+	{
+		printf("\nError: LBAwrite() failed in b_close(), b_io.c\n");
+		return 1;
+	}
+
+	free(fcbArray[fd].buf);
+	fcbArray[fd].buf = NULL;
+
+	fcbArray[fd].fileInfo = NULL;
+	return 0;
 }
