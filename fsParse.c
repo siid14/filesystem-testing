@@ -20,8 +20,23 @@
 #include "fsParse.h"
 #include "fsLow.h"
 
+#define DEFAULT_DE_COUNT 50
+
 int parsePath(const char *path, ppInfo *ppi)
 {
+    
+    // update root dir first
+    free(rootDir);
+    rootDir = NULL;
+    rootDir = loadRootDir(DEFAULT_DE_COUNT);
+
+    // update cwd if it at root dir
+    if ( cwd[0].location == rootDir[0].location)
+    {
+        free(cwd);
+        cwd = NULL;
+        cwd = loadRootDir(DEFAULT_DE_COUNT);
+    }
 
     // printf("\n\n--------------   START parsePath() ---------------\n");
     // printf("\npath: %s\n", path);
