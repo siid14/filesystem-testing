@@ -20,8 +20,23 @@
 #include "fsParse.h"
 #include "fsLow.h"
 
+#define DEFAULT_DE_COUNT 50
+
 int parsePath(const char *path, ppInfo *ppi)
 {
+    
+    // update root dir first
+    free(rootDir);
+    rootDir = NULL;
+    rootDir = loadRootDir(DEFAULT_DE_COUNT);
+
+    // update cwd if it at root dir
+    if ( cwd[0].location == rootDir[0].location)
+    {
+        free(cwd);
+        cwd = NULL;
+        cwd = loadRootDir(DEFAULT_DE_COUNT);
+    }
 
     // printf("\n\n--------------   START parsePath() ---------------\n");
     // printf("\npath: %s\n", path);
@@ -139,7 +154,7 @@ int parsePath(const char *path, ppInfo *ppi)
             return (-2);
         }
 
-        loadDir(&temp, &parent[index]);
+        DE *temp = loadDir(&parent[index]);
 
         if (temp == NULL)
         {
@@ -181,31 +196,31 @@ int findEntryInDir(DE *parent, char *token)
     return (-1);
 }
 
-int loadDir(DE **temp, DE *parent)
+DE *loadDir(DE *parent)
 {
 
     // load new directory from disk into temp directory
     int blockCount = (parent->size + vcb->blockSize - 1) / vcb->blockSize;
-    *temp = (DE *)malloc(blockCount * vcb->blockSize);
-    if (*temp == NULL)
+    DE *tempDir = (DE *)malloc(blockCount * vcb->blockSize);
+    if (tempDir == NULL)
     {
         printf("Error: malloc() failed loadDir()\n");
-        return -1;
+        return NULL;
     }
 
-    int ret = LBAread(*temp, blockCount, parent->location);
+    int ret = LBAread(tempDir, blockCount, parent->location);
 
     if (ret != blockCount)
     {
         printf("Error: LBAread() returned %d in loadDir()\n", ret);
-        return -1;
+        return NULL;
     }
 
-    return 1;
+    return tempDir;
 }
 
 // Load root directory, return -1 if failed or 1 if success
-int loadRootDir(DE **rootDir, int initialDirEntries)
+DE *loadRootDir(int initialDirEntries)
 {
 
     // printf("\n--- in loadRootDir() ---\n");
@@ -220,18 +235,23 @@ int loadRootDir(DE **rootDir, int initialDirEntries)
     int bytesMalloc = blocksNeeded * vcb->blockSize;
     // printf("Bytes malloc: %d\n", bytesMalloc);
 
-    *rootDir = (DE *)malloc(bytesMalloc);
+    DE *tempDir = (DE *)malloc(bytesMalloc);
+    if (tempDir == NULL)
+    {
+        printf("Error: malloc() failed loadRootDir()\n");
+        return NULL;
+    }
 
-    int ret = LBAread(*rootDir, blocksNeeded, vcb->rootDirLocation);
+    int ret = LBAread(tempDir, blocksNeeded, vcb->rootDirLocation);
 
     // printf("block read: %d\n", ret);
 
     if (ret != blocksNeeded)
     {
         printf("Error: LBAread() returned %d in loadRootDir()\n", ret);
-        return -1;
+        return NULL;
     }
 
     // printf("\n--- out loadRootDir() ---\n");
-    return 1;
+    return tempDir;
 }

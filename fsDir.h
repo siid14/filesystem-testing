@@ -25,21 +25,21 @@ extern char *currentPath; // the current working path updated by setcwd
 // for root directory, the parent should be null.
 int initDir(int DEcount, DE *parent, int blockSize);
 
-
 /*      Helper function       */
+
+// Load directory from disk using starting block num
+// return pointer to the loaded directory
+DE *loadDirLocation(int startBlock);
 
 // this function finds the empty entry in the parent directory
 // return -1 if all in use, otherwise return the index of free DE
 int findFreeDE(DE *parent);
-
 
 // Copy DEs from resource to target
 void copyDE(DE *target, DE *resource);
 
 // Clean the path string for cwd
 char *cleanPath(char *path);
-
-
 
 // can be used by b_open() with TRUNC flag
 // free blocks of the specified DE in the bitmap

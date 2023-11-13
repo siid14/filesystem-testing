@@ -22,10 +22,13 @@
 #include "fsLow.h"
 #include "mfs.h"
 
-DE *newDir;
-int actualDirEntries;
-int blocksNeeded;
-//char *currentpath = "/";
+#define DEFAULT_DE_COUNT 50
+
+// DE *newDir;
+//  int actualDirEntries;
+//  int blocksNeeded;
+//  int bytesMalloc;
+// char *currentpath = "/";
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -45,15 +48,15 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     // printf("Size of one entry: %ld\n", sizeof(DE));
     // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
-    blocksNeeded = (bytesNeeded + (blockSize - 1)) / blockSize;
+    int blocksNeeded = (bytesNeeded + (blockSize - 1)) / blockSize;
     // printf("blocksNeeded in initDir(): %d\n", blocksNeeded);
 
     int bytesMalloc = blocksNeeded * blockSize;
     // printf("Bytes malloc: %d\n", bytesMalloc);
 
-    actualDirEntries = bytesMalloc / sizeof(DE);
+    int actualDirEntries = bytesMalloc / sizeof(DE);
     // printf("actualDirEntries: %d\n",actualDirEntries);
-
+    DE *newDir;
     newDir = malloc(bytesMalloc);
     if (newDir == NULL)
     {
@@ -138,14 +141,15 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
         printf("Error: LBAwrite() returned %d in fsDir.c\n", ret);
         return -1;
     }
-    // free(directory);
-    // directory = NULL;
+
+    free(newDir);
+    newDir = NULL;
     return (startBlock);
 }
 
 int fs_setcwd(char *pathname)
 {
-
+  
     // printf("------setcwd function -----");
     // printf("path name is %s", pathname);
     int result = parsePath(pathname, ppi);
@@ -165,12 +169,23 @@ int fs_setcwd(char *pathname)
         if (ppi->parent[ppi->index].isDir == 0)
         {
             printf("\nError: %s is not a directory\n", ppi->lastElement);
+            // printf("pathname is : %s", pathname);
+            // printf("\nAfter parsePath()\n");
+            // printf("Return value of parsePath: %d\n", result);
+            // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+            // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+            // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+            // printf("Parent dir[3]: %s\n", ppi->parent[3].fileName);
+            // printf("Parent dir[4]: %s\n", ppi->parent[4].fileName);
+            // printf("Index: %d\n", ppi->index);
+            // printf("Last element: %s\n", ppi->lastElement);
+            // printf("parent[index].isDir: %d\n", ppi->parent[ppi->index].isDir);
             return -1;
         }
         else
         {
             free(cwd);
-            loadDir(&cwd, &(ppi->parent[ppi->index]));
+            cwd = loadDir(&(ppi->parent[ppi->index]));
 
             if (pathname[0] == '/')
             {
@@ -286,17 +301,17 @@ char *cleanPath(char *path)
 int fs_mkdir(const char *pathname, mode_t mode)
 {
 
-    printf("---- inside fs_mkdir() ----\n");
+    // printf("---- inside fs_mkdir() ----\n");
     int result = parsePath(pathname, ppi);
-    printf("---- the result of parsePath is %d ----\n", result);
-    printf("---- the ppi index is %d ----\n", ppi->index);
+    // printf("---- the result of parsePath is %d ----\n", result);
+    // printf("---- the ppi index is %d ----\n", ppi->index);
 
     if (result == -2)
     {
         printf("\nfile or directory does not exist\n");
         return -2;
     }
-    if (result == 1)
+    if (result == -1)
     {
         printf("\ninvalid path\n");
         return -1;
@@ -307,18 +322,25 @@ int fs_mkdir(const char *pathname, mode_t mode)
 
         if (ppi->index == -1)
         {
-            initDir(50, ppi->parent, 512);
-            // DE * newDir;
+            int newDirLocation = initDir(DEFAULT_DE_COUNT, ppi->parent, vcb->blockSize);
+
+            DE *newDir = loadDirLocation(newDirLocation);
+
             int freeIndex = findFreeDE(ppi->parent);
             if (freeIndex == -1)
             {
                 printf("error: no more space for new directory\n");
                 return (-1);
             }
-            copyDE(&ppi->parent[freeIndex], newDir);
+
+            copyDE(&ppi->parent[freeIndex], &newDir[0]);
             strcpy(ppi->parent[freeIndex].fileName, ppi->lastElement);
-            LBAwrite(ppi->parent, blocksNeeded, ppi->parent[0].location);
-            printf("\nsuccessful make dir\n");
+            writeDir(ppi->parent);
+            // printf("\nsuccessful make dir\n");
+
+            free(newDir);
+            newDir = NULL;
+
             return 0;
         }
         else
@@ -347,7 +369,7 @@ int findFreeDE(DE *parent)
 // this function copis
 void copyDE(DE *target, DE *resource)
 {
-    strcpy(target->fileName, resource->fileName);
+
     target->location = resource->location;
     target->size = resource->size;
     target->isDir = resource->isDir;
@@ -416,7 +438,7 @@ int fs_isFile(char *filename)
 // this function is used to close a directory after it has been read
 int fs_closedir(fdDir *dirp)
 {
-    printf("\n\n-------- START fs_closedir() --------\n");
+    //printf("\n\n-------- START fs_closedir() --------\n");
 
     if (dirp == NULL)
     {
@@ -429,14 +451,14 @@ int fs_closedir(fdDir *dirp)
     free(dirp);
     // set the directory pointer to NULL to avoid pointer issues
     dirp = NULL;
-    printf("Directory pointer set up to NULL -- Directory closed successfully\n");
-    printf("------ END fs_closedir() -----\n");
+    //printf("Directory pointer set up to NULL -- Directory closed successfully\n");
+    //printf("------ END fs_closedir() -----\n");
     return 0;
 }
 
 int fs_stat(const char *path, struct fs_stat *buf)
 {
-    printf("\n\n-------- START fs_stat() --------\n");
+   // printf("\n\n-------- START fs_stat() --------\n");
 
     if (path == NULL || ppi == NULL || buf == NULL)
     {
@@ -457,13 +479,13 @@ int fs_stat(const char *path, struct fs_stat *buf)
     // specified file or directory within its parent directory
     DE *entry = ppi->parent + ppi->index;
 
-    printf("File/Directory Name: %s\n", entry->fileName);
-    printf("Size: %lu bytes\n", entry->size);
-    printf("Block Size: %u bytes\n", vcb->blockSize);
-    printf("Blocks Allocated: %lu\n", entry->size / 512); // number of 512B blocks allocated
-    printf("Last Access Time: %s", ctime(&entry->timeLastAccessed));
-    printf("Last Modification Time: %s", ctime(&entry->timeLastModified));
-    printf("Creation Time: %s", ctime(&entry->timeCreated));
+    // printf("File/Directory Name: %s\n", entry->fileName);
+    // printf("Size: %lu bytes\n", entry->size);
+    // printf("Block Size: %u bytes\n", vcb->blockSize);
+    // printf("Blocks Allocated: %lu\n", entry->size / 512); // number of 512B blocks allocated
+    // printf("Last Access Time: %s", ctime(&entry->timeLastAccessed));
+    // printf("Last Modification Time: %s", ctime(&entry->timeLastModified));
+    // printf("Creation Time: %s", ctime(&entry->timeCreated));
 
     // fill in the attributes in the `buf` structure
     buf->st_size = entry->size;                   // total size, in bytes
@@ -473,7 +495,7 @@ int fs_stat(const char *path, struct fs_stat *buf)
     buf->st_modtime = entry->timeLastModified;    // time of last modification
     buf->st_createtime = entry->timeCreated;      // time of last status change
 
-    printf("\n\n-------- END fs_stat() --------\n");
+   // printf("\n\n-------- END fs_stat() --------\n");
 
     return 0;
 }
@@ -486,7 +508,9 @@ char *fs_getcwd(char *pathname, size_t size)
         return NULL;
     }
 
-    return currentPath;
+    strncpy(pathname, currentPath, size);
+
+    return pathname;
 }
 
 /*  functions needed by cmd_rm   */
@@ -543,7 +567,7 @@ int fs_delete(char *filename)
     return 0;
 }
 
-/*  Helper functions for rm   */
+/*  Helper functions  */
 void freeBlocksDE(DE *IndexInParent)
 {
     // If this function is called
@@ -580,7 +604,7 @@ int writeDir(DE *parent)
     int blockCount = (parent->size + vcb->blockSize - 1) / vcb->blockSize;
 
     // write parent dir to disk
-    int checkVal = LBAwrite(parent, blockCount, parent->location);
+    int checkVal = LBAwrite(parent, blockCount, parent[0].location);
 
     if (checkVal != blockCount)
     {
@@ -633,4 +657,135 @@ int checkIfDirEmpty(DE *IndexInParent)
     free(temp);
     temp = NULL;
     return isEmpty;
+}
+
+// Load directory from disk using starting block num
+DE *loadDirLocation(int startBlock)
+{
+
+    // printf("\n--- in loadRootDir() ---\n");
+
+    int bytesNeeded = sizeof(DE) * DEFAULT_DE_COUNT;
+    // printf("Size of one entry: %ld\n", sizeof(DE));
+    // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
+
+    int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
+    // printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
+
+    int bytesMalloc = blocksNeeded * vcb->blockSize;
+    // printf("Bytes malloc: %d\n", bytesMalloc);
+
+    DE *tempDir = (DE *)malloc(bytesMalloc);
+    if (tempDir == NULL)
+    {
+        printf("Error: malloc() failed loadDirLocation()\n");
+        return NULL;
+    }
+
+    int ret = LBAread(tempDir, blocksNeeded, startBlock);
+
+    // printf("block read: %d\n", ret);
+
+    if (ret != blocksNeeded)
+    {
+        printf("Error: LBAread() returned %d in loadDirLocation()\n", ret);
+        return NULL;
+    }
+
+    // printf("\n--- out loadRootDir() ---\n");
+    return tempDir;
+}
+
+fdDir *fs_opendir(const char *pathname)
+{
+
+    //printf("\n\n----    In opendir()    ----\n");
+    //printf("the path is: %s\n", pathname);
+    int checkVal = parsePath(pathname, ppi);
+
+    // Case: / is the path, load root dir
+    if (ppi->lastElement == NULL)
+    {
+        // printf("inside / path\n");
+        DE *temp = loadRootDir(DEFAULT_DE_COUNT);
+
+
+        fdDir *fdd = malloc(sizeof(fdDir));
+
+        fdd->directory = temp;
+        fdd->dirEntryPosition = 0;
+        fdd->d_reclen = sizeof(fdDir);
+
+        return fdd;
+    }
+
+    // printf("return of parsePath(): %d\n", checkVal);
+
+    // printf("\n\nUpdated parse path info\n");
+    // printf("Last element: %s\n", ppi->lastElement);
+    // printf("Index of last element in parent: %d\n", ppi->index);
+    // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+    // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+    // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+    // printf("Parent dir[3]: %s\n", ppi->parent[3].fileName);
+    // printf("cwd dir[0]: %s\n", cwd[0].fileName);
+    // printf("cwd dir[1]: %s\n", cwd[1].fileName);
+    // printf("cwd dir[2]: %s\n", cwd[2].fileName);
+    // printf("cwd dir[3]: %s\n", cwd[3].fileName);
+    // printf("rootDir[0]: %s\n", rootDir[0].fileName);
+    // printf("rootDir[1]: %s\n", rootDir[1].fileName);
+    // printf("rootDir[2]: %s\n", rootDir[2].fileName);
+    // printf("rootDir[3]: %s\n", rootDir[3].fileName);
+
+    if (checkVal != 0 || ppi->index == -1 || ppi->parent[ppi->index].isDir != 1)
+    {
+        printf("Invalid directory path\n");
+        return NULL;
+    }
+
+    DE *temp = loadDir(&ppi->parent[ppi->index]);
+
+    if (temp == NULL)
+    {
+        return NULL;
+    }
+
+    fdDir *fdd = malloc(sizeof(fdDir));
+    fdd->directory = temp;
+    fdd->dirEntryPosition = 0;
+    fdd->d_reclen = sizeof(fdDir);
+
+    return fdd;
+}
+
+struct fs_diriteminfo *fs_readdir(fdDir *dirp)
+{
+    int entryCount = dirp->directory[0].size / sizeof(DE);
+
+    struct fs_diriteminfo *di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
+
+    for (int i = dirp->dirEntryPosition; i < entryCount; i++)
+    {
+        // If the name of dir[i] is not \0, then it is used
+        if (strcmp(dirp->directory[i].fileName, "\0") != 0)
+        {
+            di->d_reclen = sizeof(struct fs_diriteminfo);
+
+            strcpy(di->d_name, dirp->directory[i].fileName);
+
+            // Set type in di to File
+            if (dirp->directory[i].isDir == 0)
+            {
+                di->fileType = FT_REGFILE;
+            }
+            else // Set type in di to Directory
+            {
+                di->fileType = FT_DIRECTORY;
+            }
+
+            dirp->dirEntryPosition = i + 1;
+            return di;
+        }
+    }
+    return NULL;
 }
