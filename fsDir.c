@@ -22,10 +22,13 @@
 #include "fsLow.h"
 #include "mfs.h"
 
-DE *newDir;
-int actualDirEntries;
-int blocksNeeded;
-//char *currentpath = "/";
+#define DEFAULT_DE_COUNT 50
+
+// DE *newDir;
+//  int actualDirEntries;
+//  int blocksNeeded;
+//  int bytesMalloc;
+// char *currentpath = "/";
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -45,15 +48,15 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
     // printf("Size of one entry: %ld\n", sizeof(DE));
     // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
 
-    blocksNeeded = (bytesNeeded + (blockSize - 1)) / blockSize;
+    int blocksNeeded = (bytesNeeded + (blockSize - 1)) / blockSize;
     // printf("blocksNeeded in initDir(): %d\n", blocksNeeded);
 
     int bytesMalloc = blocksNeeded * blockSize;
     // printf("Bytes malloc: %d\n", bytesMalloc);
 
-    actualDirEntries = bytesMalloc / sizeof(DE);
+    int actualDirEntries = bytesMalloc / sizeof(DE);
     // printf("actualDirEntries: %d\n",actualDirEntries);
-
+    DE *newDir;
     newDir = malloc(bytesMalloc);
     if (newDir == NULL)
     {
@@ -138,8 +141,9 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
         printf("Error: LBAwrite() returned %d in fsDir.c\n", ret);
         return -1;
     }
-    // free(directory);
-    // directory = NULL;
+
+    free(newDir);
+    newDir = NULL;
     return (startBlock);
 }
 
@@ -170,7 +174,7 @@ int fs_setcwd(char *pathname)
         else
         {
             free(cwd);
-            loadDir(&cwd, &(ppi->parent[ppi->index]));
+            cwd = loadDir(&(ppi->parent[ppi->index]));
 
             if (pathname[0] == '/')
             {
@@ -286,17 +290,17 @@ char *cleanPath(char *path)
 int fs_mkdir(const char *pathname, mode_t mode)
 {
 
-    printf("---- inside fs_mkdir() ----\n");
+    // printf("---- inside fs_mkdir() ----\n");
     int result = parsePath(pathname, ppi);
-    printf("---- the result of parsePath is %d ----\n", result);
-    printf("---- the ppi index is %d ----\n", ppi->index);
+    // printf("---- the result of parsePath is %d ----\n", result);
+    // printf("---- the ppi index is %d ----\n", ppi->index);
 
     if (result == -2)
     {
         printf("\nfile or directory does not exist\n");
         return -2;
     }
-    if (result == 1)
+    if (result == -1)
     {
         printf("\ninvalid path\n");
         return -1;
@@ -307,18 +311,25 @@ int fs_mkdir(const char *pathname, mode_t mode)
 
         if (ppi->index == -1)
         {
-            initDir(50, ppi->parent, 512);
-            // DE * newDir;
+            int newDirLocation = initDir(DEFAULT_DE_COUNT, ppi->parent, vcb->blockSize);
+
+            DE * newDir = loadDirLocation(newDirLocation);
+
             int freeIndex = findFreeDE(ppi->parent);
             if (freeIndex == -1)
             {
                 printf("error: no more space for new directory\n");
                 return (-1);
             }
-            copyDE(&ppi->parent[freeIndex], newDir);
+
+            copyDE(&ppi->parent[freeIndex], &newDir[0]);
             strcpy(ppi->parent[freeIndex].fileName, ppi->lastElement);
-            LBAwrite(ppi->parent, blocksNeeded, ppi->parent[0].location);
-            printf("\nsuccessful make dir\n");
+            writeDir(ppi->parent);
+            // printf("\nsuccessful make dir\n");
+
+            free(newDir);
+            newDir = NULL;
+            
             return 0;
         }
         else
@@ -347,7 +358,7 @@ int findFreeDE(DE *parent)
 // this function copis
 void copyDE(DE *target, DE *resource)
 {
-    strcpy(target->fileName, resource->fileName);
+    
     target->location = resource->location;
     target->size = resource->size;
     target->isDir = resource->isDir;
@@ -633,4 +644,41 @@ int checkIfDirEmpty(DE *IndexInParent)
     free(temp);
     temp = NULL;
     return isEmpty;
+}
+
+// Load directory from disk using starting block num
+DE *loadDirLocation(int startBlock)
+{
+
+    // printf("\n--- in loadRootDir() ---\n");
+
+    int bytesNeeded = sizeof(DE) * DEFAULT_DE_COUNT;
+    // printf("Size of one entry: %ld\n", sizeof(DE));
+    // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
+
+    int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
+    // printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
+
+    int bytesMalloc = blocksNeeded * vcb->blockSize;
+    // printf("Bytes malloc: %d\n", bytesMalloc);
+
+    DE *tempDir = (DE *)malloc(bytesMalloc);
+    if (tempDir == NULL)
+    {
+        printf("Error: malloc() failed loadDirLocation()\n");
+        return NULL;
+    }
+
+    int ret = LBAread(tempDir, blocksNeeded, startBlock);
+
+    // printf("block read: %d\n", ret);
+
+    if (ret != blocksNeeded)
+    {
+        printf("Error: LBAread() returned %d in loadDirLocation()\n", ret);
+        return NULL;
+    }
+
+    // printf("\n--- out loadRootDir() ---\n");
+    return tempDir;
 }
