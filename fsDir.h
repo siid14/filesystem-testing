@@ -15,7 +15,7 @@
 #define _FS_DIR_H
 #include "fsFree.h"
 
-extern char* currentPath; // the current working path updated by setcwd
+extern char *currentPath; // the current working path updated by setcwd
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
@@ -25,24 +25,36 @@ extern char* currentPath; // the current working path updated by setcwd
 // for root directory, the parent should be null.
 int initDir(int DEcount, DE *parent, int blockSize);
 
+
 /*      Helper function       */
+
+// this function finds the empty entry in the parent directory
+// return -1 if all in use, otherwise return the index of free DE
+int findFreeDE(DE *parent);
+
+
+// Copy DEs from resource to target
+void copyDE(DE *target, DE *resource);
+
+// Clean the path string for cwd
+char *cleanPath(char *path);
+
+
 
 // can be used by b_open() with TRUNC flag
 // free blocks of the specified DE in the bitmap
-void freeBlocksDE (DE * IndexInParent);
-
+void freeBlocksDE(DE *IndexInParent);
 
 // mark the DE as unused in its parent directory
-void markUnusedDE(DE * IndexInParent);
+void markUnusedDE(DE *IndexInParent);
 
 // write updated DEs of parent to disk
 // return 0: success    1: fail
-int writeDir(DE * parent);
+int writeDir(DE *parent);
 
 // If DE is a directory, check if the the dir is empty
 // the dir should only have . and ..  DEs
 // return 0:  empty    1: not empty     -1: other error
-int checkIfDirEmpty(DE * IndexInParent);
-
+int checkIfDirEmpty(DE *IndexInParent);
 
 #endif
