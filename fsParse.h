@@ -42,10 +42,10 @@ int findEntryInDir(DE *parent, char *token);
 // Second parameter: DE info of the directory in disk
 // load specified directory from disk to a temporary directory in memory
 // return -1 if failed or 1 if success
-int loadDir(DE **temp, DE *parent);
+DE *loadDir(DE *parent);
 
 // load root directory from disk to a temporary directory in memory
 // return -1 if failed or 1 if success
-int loadRootDir(DE **rootDir, int initialDirEntries);
+DE *loadRootDir(int initialDirEntries);
 
 #endif

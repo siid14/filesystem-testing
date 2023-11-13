@@ -99,8 +99,8 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	}
 
 	// Load necessary data in memory during initialization
-	loadRootDir(&rootDir, DEFAULT_DE_COUNT);
-	loadRootDir(&cwd, DEFAULT_DE_COUNT);
+	rootDir = loadRootDir(DEFAULT_DE_COUNT);
+	cwd = loadRootDir(DEFAULT_DE_COUNT);
 	ppi = malloc(sizeof(ppInfo));
 	currentPath = malloc(MAX_PATH_LEN + 1);
 	strcpy(currentPath,"/");
