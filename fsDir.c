@@ -149,7 +149,7 @@ int initDir(int initialDirEntries, DE *parent, int blockSize)
 
 int fs_setcwd(char *pathname)
 {
-
+  
     // printf("------setcwd function -----");
     // printf("path name is %s", pathname);
     int result = parsePath(pathname, ppi);
@@ -169,6 +169,17 @@ int fs_setcwd(char *pathname)
         if (ppi->parent[ppi->index].isDir == 0)
         {
             printf("\nError: %s is not a directory\n", ppi->lastElement);
+            // printf("pathname is : %s", pathname);
+            // printf("\nAfter parsePath()\n");
+            // printf("Return value of parsePath: %d\n", result);
+            // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+            // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+            // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+            // printf("Parent dir[3]: %s\n", ppi->parent[3].fileName);
+            // printf("Parent dir[4]: %s\n", ppi->parent[4].fileName);
+            // printf("Index: %d\n", ppi->index);
+            // printf("Last element: %s\n", ppi->lastElement);
+            // printf("parent[index].isDir: %d\n", ppi->parent[ppi->index].isDir);
             return -1;
         }
         else
@@ -313,7 +324,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
         {
             int newDirLocation = initDir(DEFAULT_DE_COUNT, ppi->parent, vcb->blockSize);
 
-            DE * newDir = loadDirLocation(newDirLocation);
+            DE *newDir = loadDirLocation(newDirLocation);
 
             int freeIndex = findFreeDE(ppi->parent);
             if (freeIndex == -1)
@@ -329,7 +340,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
 
             free(newDir);
             newDir = NULL;
-            
+
             return 0;
         }
         else
@@ -358,7 +369,7 @@ int findFreeDE(DE *parent)
 // this function copis
 void copyDE(DE *target, DE *resource)
 {
-    
+
     target->location = resource->location;
     target->size = resource->size;
     target->isDir = resource->isDir;
@@ -427,7 +438,7 @@ int fs_isFile(char *filename)
 // this function is used to close a directory after it has been read
 int fs_closedir(fdDir *dirp)
 {
-    printf("\n\n-------- START fs_closedir() --------\n");
+    //printf("\n\n-------- START fs_closedir() --------\n");
 
     if (dirp == NULL)
     {
@@ -440,14 +451,14 @@ int fs_closedir(fdDir *dirp)
     free(dirp);
     // set the directory pointer to NULL to avoid pointer issues
     dirp = NULL;
-    printf("Directory pointer set up to NULL -- Directory closed successfully\n");
-    printf("------ END fs_closedir() -----\n");
+    //printf("Directory pointer set up to NULL -- Directory closed successfully\n");
+    //printf("------ END fs_closedir() -----\n");
     return 0;
 }
 
 int fs_stat(const char *path, struct fs_stat *buf)
 {
-    printf("\n\n-------- START fs_stat() --------\n");
+   // printf("\n\n-------- START fs_stat() --------\n");
 
     if (path == NULL || ppi == NULL || buf == NULL)
     {
@@ -468,13 +479,13 @@ int fs_stat(const char *path, struct fs_stat *buf)
     // specified file or directory within its parent directory
     DE *entry = ppi->parent + ppi->index;
 
-    printf("File/Directory Name: %s\n", entry->fileName);
-    printf("Size: %lu bytes\n", entry->size);
-    printf("Block Size: %u bytes\n", vcb->blockSize);
-    printf("Blocks Allocated: %lu\n", entry->size / 512); // number of 512B blocks allocated
-    printf("Last Access Time: %s", ctime(&entry->timeLastAccessed));
-    printf("Last Modification Time: %s", ctime(&entry->timeLastModified));
-    printf("Creation Time: %s", ctime(&entry->timeCreated));
+    // printf("File/Directory Name: %s\n", entry->fileName);
+    // printf("Size: %lu bytes\n", entry->size);
+    // printf("Block Size: %u bytes\n", vcb->blockSize);
+    // printf("Blocks Allocated: %lu\n", entry->size / 512); // number of 512B blocks allocated
+    // printf("Last Access Time: %s", ctime(&entry->timeLastAccessed));
+    // printf("Last Modification Time: %s", ctime(&entry->timeLastModified));
+    // printf("Creation Time: %s", ctime(&entry->timeCreated));
 
     // fill in the attributes in the `buf` structure
     buf->st_size = entry->size;                   // total size, in bytes
@@ -484,7 +495,7 @@ int fs_stat(const char *path, struct fs_stat *buf)
     buf->st_modtime = entry->timeLastModified;    // time of last modification
     buf->st_createtime = entry->timeCreated;      // time of last status change
 
-    printf("\n\n-------- END fs_stat() --------\n");
+   // printf("\n\n-------- END fs_stat() --------\n");
 
     return 0;
 }
@@ -497,7 +508,9 @@ char *fs_getcwd(char *pathname, size_t size)
         return NULL;
     }
 
-    return currentPath;
+    strncpy(pathname, currentPath, size);
+
+    return pathname;
 }
 
 /*  functions needed by cmd_rm   */
@@ -554,7 +567,7 @@ int fs_delete(char *filename)
     return 0;
 }
 
-/*  Helper functions for rm   */
+/*  Helper functions  */
 void freeBlocksDE(DE *IndexInParent)
 {
     // If this function is called
@@ -591,7 +604,7 @@ int writeDir(DE *parent)
     int blockCount = (parent->size + vcb->blockSize - 1) / vcb->blockSize;
 
     // write parent dir to disk
-    int checkVal = LBAwrite(parent, blockCount, parent->location);
+    int checkVal = LBAwrite(parent, blockCount, parent[0].location);
 
     if (checkVal != blockCount)
     {
@@ -681,4 +694,98 @@ DE *loadDirLocation(int startBlock)
 
     // printf("\n--- out loadRootDir() ---\n");
     return tempDir;
+}
+
+fdDir *fs_opendir(const char *pathname)
+{
+
+    //printf("\n\n----    In opendir()    ----\n");
+    //printf("the path is: %s\n", pathname);
+    int checkVal = parsePath(pathname, ppi);
+
+    // Case: / is the path, load root dir
+    if (ppi->lastElement == NULL)
+    {
+        // printf("inside / path\n");
+        DE *temp = loadRootDir(DEFAULT_DE_COUNT);
+
+
+        fdDir *fdd = malloc(sizeof(fdDir));
+
+        fdd->directory = temp;
+        fdd->dirEntryPosition = 0;
+        fdd->d_reclen = sizeof(fdDir);
+
+        return fdd;
+    }
+
+    // printf("return of parsePath(): %d\n", checkVal);
+
+    // printf("\n\nUpdated parse path info\n");
+    // printf("Last element: %s\n", ppi->lastElement);
+    // printf("Index of last element in parent: %d\n", ppi->index);
+    // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
+    // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
+    // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
+    // printf("Parent dir[3]: %s\n", ppi->parent[3].fileName);
+    // printf("cwd dir[0]: %s\n", cwd[0].fileName);
+    // printf("cwd dir[1]: %s\n", cwd[1].fileName);
+    // printf("cwd dir[2]: %s\n", cwd[2].fileName);
+    // printf("cwd dir[3]: %s\n", cwd[3].fileName);
+    // printf("rootDir[0]: %s\n", rootDir[0].fileName);
+    // printf("rootDir[1]: %s\n", rootDir[1].fileName);
+    // printf("rootDir[2]: %s\n", rootDir[2].fileName);
+    // printf("rootDir[3]: %s\n", rootDir[3].fileName);
+
+    if (checkVal != 0 || ppi->index == -1 || ppi->parent[ppi->index].isDir != 1)
+    {
+        printf("Invalid directory path\n");
+        return NULL;
+    }
+
+    DE *temp = loadDir(&ppi->parent[ppi->index]);
+
+    if (temp == NULL)
+    {
+        return NULL;
+    }
+
+    fdDir *fdd = malloc(sizeof(fdDir));
+    fdd->directory = temp;
+    fdd->dirEntryPosition = 0;
+    fdd->d_reclen = sizeof(fdDir);
+
+    return fdd;
+}
+
+struct fs_diriteminfo *fs_readdir(fdDir *dirp)
+{
+    int entryCount = dirp->directory[0].size / sizeof(DE);
+
+    struct fs_diriteminfo *di = (struct fs_diriteminfo *)malloc(sizeof(struct fs_diriteminfo));
+
+    for (int i = dirp->dirEntryPosition; i < entryCount; i++)
+    {
+        // If the name of dir[i] is not \0, then it is used
+        if (strcmp(dirp->directory[i].fileName, "\0") != 0)
+        {
+            di->d_reclen = sizeof(struct fs_diriteminfo);
+
+            strcpy(di->d_name, dirp->directory[i].fileName);
+
+            // Set type in di to File
+            if (dirp->directory[i].isDir == 0)
+            {
+                di->fileType = FT_REGFILE;
+            }
+            else // Set type in di to Directory
+            {
+                di->fileType = FT_DIRECTORY;
+            }
+
+            dirp->dirEntryPosition = i + 1;
+            return di;
+        }
+    }
+    return NULL;
 }
