@@ -68,61 +68,82 @@ b_io_fd b_getFCB()
 	return (-1); // all in use
 }
 
-// Interface to open a buffered file
-// Modification of interface for this assignment, flags match the Linux flags for open
-// O_RDONLY, O_WRONLY, or O_RDWR
+/* File Open Function
+ this function initializes a File Control Block (FCB) for the specified file and returns a file descriptor
+ it opens the file with the provided filename and flags, allocates a buffer for file I/O, and tracks the current file position
+ parameters:
+ - filename: The name of the file to open
+ - flags: Flags indicating the file access mode (O_RDONLY, O_WRONLY, or O_RDWR)
+ returns:
+ - a file descriptor (file handle) if the operation is successful
+ - returns -1 if there are no available FCBs, errors opening the file, or memory allocation issues.
+ */
 b_io_fd b_open(char *filename, int flags)
 {
 	b_io_fd returnFd;
 
-	//*** TODO ***:  Modify to save or set any information needed
-	//
-	//
-
 	if (startup == 0)
-		b_init(); // Initialize our system
+	{
+		b_init(); // initialize our system
+		printf("b_open: File system initialized\n");
+	}
 
-	returnFd = b_getFCB(); // get our own file descriptor
-						   // check for error - all used FCB's
+	returnFd = b_getFCB(); // get the file descriptor
 
-	// Check for an error (all FCBs in use)
+	// check for error (all FCBs in use)
 	if (returnFd == -1)
+	{
+		printf("b_open: All FCBs are in use\n");
 		return -1;
+	}
 
-	// Open the file
+	// open the file
 	int fileInfo = fs_open(filename, flags);
 
-	// Check for errors in opening the file
+	// check for opening file errors
 	if (fileInfo == -1)
+	{
+		printf("b_open: Error opening the file\n");
 		return -1;
+	}
 
-	// Allocate a buffer for the file in the FCB
+	// allocate a buffer for the file in the FCB
 	fcbArray[returnFd].buf = (char *)malloc(B_CHUNK_SIZE);
-	// Check for errors in malloc
+
+	// check for errors in malloc
 	if (fcbArray[returnFd].buf == NULL)
+	{
+		printf("b_open: Error allocating memory for file buffer\n");
 		return -1;
+	}
 
-	// Initialize other fields of the FCB
-	fcbArray[returnFd].index = 0;
-	fcbArray[returnFd].buflen = 0;
-	fcbArray[returnFd].currentBlock = 0;
-	//
+	// check if file descriptor is valid and init FCB
+	if (returnFd != -1)
+	{
+		fcbArray[returnFd].index = 0;				  // file pointer position to the beginning of the file
+		fcbArray[returnFd].buflen = 0;				  // buffer length to 0 (buffer is currently empty)
+		fcbArray[returnFd].currentBlock = 0;		  // current block to the first block of the file
+		fcbArray[returnFd].fileInfo = (DE *)fileInfo; // file information with the file's directory entry (DE)
+		printf("b_open: FCB initialized successfully\n");
+	}
 
-	// Check the access mode specified by the flags in a file open operation
-	if (flags & O_ACCMODE == O_RDONLY)
+	// ? if needed, can add a vraiable to track the access mode (read, write, read/write)
+	// check the access mode specified by the flags in a file open operation
+	if ((flags & O_ACCMODE) == O_RDONLY)
 	{
 		printf("b_open: Opening file for read...\n");
 	}
-	else if (flags & O_ACCMODE == O_WRONLY)
+	else if ((flags & O_ACCMODE) == O_WRONLY)
 	{
 		printf("b_open: Opening file for write...\n");
 	}
-	else if (flags & O_ACCMODE == O_RDWR)
+	else if ((flags & O_ACCMODE) == O_RDWR)
 	{
 		printf("b_open: Opening file for read and write...\n");
 	}
 	else
 	{
+		printf("b_open: Invalid access mode\n");
 		return -1;
 	}
 
