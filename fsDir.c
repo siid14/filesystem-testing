@@ -25,10 +25,7 @@
 DE *newDir;
 int actualDirEntries;
 int blocksNeeded;
-char *currentpath = "/";
-int findFreeDE(DE *parent);
-void copyDE(DE *target, DE *resource);
-char *cleanPath(char *path);
+//char *currentpath = "/";
 
 // this function init directory
 // it returns the number of first block of the directory in the disk
