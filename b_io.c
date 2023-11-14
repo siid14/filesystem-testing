@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 #include "b_io.h"
 #include "mfs.h"
 #include "fsFree.h"
@@ -64,42 +65,115 @@ b_io_fd b_getFCB()
 	for (int i = 0; i < MAXFCBS; i++)
 	{
 		if (fcbArray[i].buf == NULL)
-		{
-			return i; // Not thread safe (But do not worry about it for this assignment)
-		}
+			if (fcbArray[i].buf == NULL)
+			{
+				return i; // Not thread safe (But do not worry about it for this assignment)
+			}
 	}
 	return (-1); // all in use
 }
 
-// Interface to open a buffered file
-// Modification of interface for this assignment, flags match the Linux flags for open
-// O_RDONLY, O_WRONLY, or O_RDWR
+/* File Open Function
+ this function initializes a File Control Block (FCB) for the specified file and returns a file descriptor
+ it opens the file with the provided filename and flags, allocates a buffer for file I/O, and tracks the current file position
+ parameters:
+ - filename: The name of the file to open
+ - flags: Flags indicating the file access mode (O_RDONLY, O_WRONLY, or O_RDWR)
+ returns:
+ - a file descriptor (file handle) if the operation is successful
+ - returns -1 if there are no available FCBs, errors opening the file, or memory allocation issues.
+ */
 b_io_fd b_open(char *filename, int flags)
 {
 	b_io_fd returnFd;
 
-	//*** TODO ***:  Modify to save or set any information needed
-	//
-	//
-
 	if (startup == 0)
-		b_init(); // Initialize our system
+	{
+		b_init(); // initialize our system
+		printf("b_open: File system initialized\n");
+	}
 
-	returnFd = b_getFCB(); // get our own file descriptor
-						   // check for error - all used FCB's
+	returnFd = b_getFCB(); // get the file descriptor
+
+	// check for error (all FCBs in use)
+	if (returnFd == -1)
+	{
+		printf("b_open: All FCBs are in use\n");
+		return -1;
+	}
+
+	// open the file
+	int fileInfo = fs_open(filename, flags);
+
+	// check for opening file errors
+	if (fileInfo == -1)
+	{
+		printf("b_open: Error opening the file\n");
+		return -1;
+	}
+
+	// allocate a buffer for the file in the FCB
+	fcbArray[returnFd].buf = (char *)malloc(B_CHUNK_SIZE);
+
+	// check for errors in malloc
+	if (fcbArray[returnFd].buf == NULL)
+	{
+		printf("b_open: Error allocating memory for file buffer\n");
+		return -1;
+	}
+
+	// check if file descriptor is valid and init FCB
+	if (returnFd != -1)
+	{
+		fcbArray[returnFd].index = 0;				  // file pointer position to the beginning of the file
+		fcbArray[returnFd].buflen = 0;				  // buffer length to 0 (buffer is currently empty)
+		fcbArray[returnFd].currentBlock = 0;		  // current block to the first block of the file
+		fcbArray[returnFd].fileInfo = (DE *)fileInfo; // file information with the file's directory entry (DE)
+		printf("b_open: FCB initialized successfully\n");
+	}
+
+	// ? if needed, can add a vraiable to track the access mode (read, write, read/write)
+	// check the access mode specified by the flags in a file open operation
+	if ((flags & O_ACCMODE) == O_RDONLY)
+	{
+		printf("b_open: Opening file for read...\n");
+	}
+	else if ((flags & O_ACCMODE) == O_WRONLY)
+	{
+		printf("b_open: Opening file for write...\n");
+	}
+	else if ((flags & O_ACCMODE) == O_RDWR)
+	{
+		printf("b_open: Opening file for read and write...\n");
+	}
+	else
+	{
+		printf("b_open: Invalid access mode\n");
+		return -1;
+	}
 
 	return (returnFd); // all set
 }
 
-// Interface to seek function
+/* File Seek Function
+ moves the file pointer inside an open file to a new position based on 'whence' and 'offset'
+ it updates the file pointer (index) in the File Control Block (FCB) and returns the new position
+ parameters:
+   - fd: File descriptor
+   - offset: Offset to move the file pointer
+   - whence: Reference point for the seek operation (SEEK_SET, SEEK_CUR, SEEK_END)
+ returns:
+ - the new position within the file, or -1 in case of an error
+*/
 int b_seek(b_io_fd fd, off_t offset, int whence)
 {
 	if (startup == 0)
-		b_init(); // Initialize our system
+		b_init(); // initialize our system
 
-	// check that fd is between 0 and (MAXFCBS-1)
+	// check fd between 0 and (MAXFCBS-1)
 	if ((fd < 0) || (fd >= MAXFCBS))
 	{
+		printf("b_seek: Invalid file descriptor\n");
 		return (-1); // invalid file descriptor
 	}
 
@@ -245,6 +319,11 @@ int b_write(b_io_fd fd, char *buffer, int count)
 //  +-------------+------------------------------------------------+--------+
 int b_read(b_io_fd fd, char *buffer, int count)
 {
+	int bytesRead = 0;		 // Number of bytes read from the file
+	int bytesReturned;		 // Total number of bytes returned as the result of b_read
+	int part1, part2, part3; // Variables to manage the data reading process in segments
+	int copiedBlocks;		 // Number of blocks to be copied during data reading to control the reading process when data spans across multiple blocks
+	int remain;
 
 	if (startup == 0)
 		b_init(); // Initialize our system
@@ -255,7 +334,91 @@ int b_read(b_io_fd fd, char *buffer, int count)
 		return (-1); // invalid file descriptor
 	}
 
-	return (0); // Change this
+	// Check if file not open for this descriptor
+	if (fcbArray[fd].buf == NULL)
+	{
+		return -1;
+	}
+
+	remain = fcbArray[fd].buflen - fcbArray[fd].index;
+
+	// Calculate the total number of bytes already delivered to track the number of bytes processed
+	int bytesDelivered = (fcbArray[fd].currentBlock * B_CHUNK_SIZE) - remain;
+
+	// Check if the requested count exceeds the file size
+	if ((count + bytesDelivered) > fcbArray[fd].fileInfo->fileSize)
+	{
+		// If yes, limit the count to the remaining bytes until the end of the file
+		count = fcbArray[fd].fileInfo->fileSize - bytesDelivered;
+		// printf("count: %d\n", count);
+	}
+
+	// Part 1 - The first part reads from the buffer
+	// Part 2 - The data reads from additional blocks
+	// Part 3 - The remaining part of data reads from the buffer
+
+	// Determine if enough data is available in the buffer to fulfill the requested count of bytes
+	if (remain >= count)
+	{
+		part1 = count; // Count is completely buffered
+		part2 = 0;	   // No data from additional blocks is required
+		part3 = 0;	   // No need to read more data from the next buffer
+	}
+	// If not, read data from both the buffer and additional blocks
+	else
+	{
+		part1 = remain;			// Read from the buffer
+		part3 = count - remain; // Additional data needed beyond the buffer if part 1 is not enough
+
+		// Calculate the number of blocks to copy for part2
+		copiedBlocks = part3 / B_CHUNK_SIZE;
+		part2 = copiedBlocks * B_CHUNK_SIZE;
+		part3 = part3 - part2; // Recalculate the remaining bytes for part3
+	}
+
+	// If there is enough data available to fulfill part 1
+	if (part1 > 0)
+	{
+		// Data from the buffer is transferred to the user's buffer
+		memcpy(buffer, fcbArray[fd].buf + fcbArray[fd].index, part1);
+		// Update the index to the next unread data
+		fcbArray[fd].index = fcbArray[fd].index + part1;
+	}
+
+	// If there is additional data that needs to be read from storage
+	if (part2 > 0)
+	{
+		// Use LBAread to read data from storage and store it in the user's buffer
+		bytesRead = LBAread(buffer + part1, copiedBlocks, fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+		// Update the current block pointer to track the position in the file
+		fcbArray[fd].currentBlock += copiedBlocks;
+		// Update part2 based on the number of bytes read
+		part2 = bytesRead * B_CHUNK_SIZE;
+	}
+
+	// If need to refill the buffer to copy more bytes to the user
+	if (part3 > 0)
+	{
+		bytesRead = LBAread(fcbArray[fd].buf, 1, fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+		bytesRead = bytesRead * B_CHUNK_SIZE;
+		fcbArray[fd].currentBlock += 1;
+
+		// Reset the offset and buffer length
+		fcbArray[fd].index = 0;
+		fcbArray[fd].buflen = bytesRead;
+
+		// Check to ensure part 3 does not exceed the actual number of bytes read
+		if (bytesRead < part3)
+		{
+			part3 = bytesRead;
+		}
+
+		memcpy(buffer + part1 + part2, fcbArray[fd].buf + fcbArray[fd].index, part3);
+		// Update the index to the next unread data
+		fcbArray[fd].index = fcbArray[fd].index + part3;
+	}
+	bytesReturned = part1 + part2 + part3;
+	return bytesReturned;
 }
 
 // Interface to Close the file
