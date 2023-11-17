@@ -28,7 +28,8 @@
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
-#define extend_block_count 10
+#define EXTEND_BLOCK_COUNT 10
+#define MAX_PATH_LEN 4096
 
 typedef struct b_fcb
 {
@@ -40,7 +41,7 @@ typedef struct b_fcb
 	int buflen; // holds how many valid bytes are in the buffer
 	int currentBlock;
 	int accessMode;
-	char *path; // points to the path passed to b_open()
+	char path[MAX_PATH_LEN + 1]; // copy of path passed to b_open(), will be used in b_close()
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -83,6 +84,9 @@ b_io_fd b_getFCB()
  - a file descriptor (file handle) if the operation is successful
  - returns -1 if there are no available FCBs, errors opening the file, or memory allocation issues.
  */
+
+
+
 b_io_fd b_open(char *filename, int flags)
 {
 	b_io_fd returnFd;
@@ -103,7 +107,10 @@ b_io_fd b_open(char *filename, int flags)
 	}
 
 	// open the file
-	int fileInfo = fs_open(filename, flags);
+	
+	// int fileInfo = fs_open(filename, flags);
+
+	int fileInfo = -1; // delete this later
 
 	// check for opening file errors
 	if (fileInfo == -1)
@@ -129,6 +136,8 @@ b_io_fd b_open(char *filename, int flags)
 		fcbArray[returnFd].buflen = 0;				  // buffer length to 0 (buffer is currently empty)
 		fcbArray[returnFd].currentBlock = 0;		  // current block to the first block of the file
 		fcbArray[returnFd].fileInfo = (DE *)fileInfo; // file information with the file's directory entry (DE)
+		strcpy(fcbArray[returnFd].path, filename);	  // get a copy of filename
+		
 		printf("b_open: FCB initialized successfully\n");
 	}
 
@@ -180,7 +189,7 @@ int b_seek(b_io_fd fd, off_t offset, int whence)
 	return (0); // Change this
 }
 
-/*
+
 // Interface to write function
 // fd is the destinatation file descriptor
 // buffer contains the contents to write
@@ -211,7 +220,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	}
 
 	// check if the current size is enough for extra count bytes
-	off_t fileSize = seek(fd, 0, SEEK_END);
+	off_t fileSize = b_seek(fd, 0, SEEK_END);
 
 	if (fileSize + count > fcbArray[fd].fileInfo->size)
 	{
@@ -219,7 +228,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 		int currentBlockNumber = (fcbArray[fd].fileInfo->size +
 								  B_CHUNK_SIZE - 1) /
 								 B_CHUNK_SIZE;
-		int newBlockNumber = currentBlockNumber + extend_block_count;
+		int newBlockNumber = currentBlockNumber + EXTEND_BLOCK_COUNT;
 		int newLocation = allocBlocksCont(newBlockNumber);
 		if (newLocation == -1)
 		{
@@ -296,7 +305,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 
 	return (bytesReturned); // Change this
 }
-*/
+
 
 // Interface to read a buffer
 
