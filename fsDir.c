@@ -166,6 +166,16 @@ int fs_setcwd(char *pathname)
     }
     else
     {
+        // Case:  path is "/"
+        if (ppi->lastElement == NULL)
+        {
+            free(cwd);
+            cwd = NULL;
+            cwd = loadRootDir(DEFAULT_DE_COUNT);
+            strcpy(currentPath, "/");
+            return 0;
+        }
+
         if (ppi->parent[ppi->index].isDir == 0)
         {
             printf("\nError: %s is not a directory\n", ppi->lastElement);
@@ -185,6 +195,7 @@ int fs_setcwd(char *pathname)
         else
         {
             free(cwd);
+            cwd = NULL;
             cwd = loadDir(&(ppi->parent[ppi->index]));
 
             if (pathname[0] == '/')
@@ -393,6 +404,12 @@ int fs_isDir(char *pathname)
     }
     else
     {
+        // Case: path is "/"
+        if (ppi->lastElement == NULL)
+        {
+            return 1;
+        }
+
         if (ppi->parent[ppi->index].isDir == 0)
         {
             // printf("\nThis file is not a directory\n");
@@ -422,6 +439,12 @@ int fs_isFile(char *filename)
     }
     else
     {
+        // Case: path is "/"
+        if (ppi->lastElement == NULL)
+        {
+            return 0;
+        }
+
         if (ppi->parent[ppi->index].isDir == 0)
         {
             // printf("\nThis file is a file\n");
@@ -787,4 +810,85 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp)
         }
     }
     return NULL;
+}
+
+int fs_move(char *src, char *dest)
+{
+    // when this function is called, the types of src and dest are valid
+    // src is a file, and dest is a directory
+
+    parsePath(src, ppi);
+
+    // Load the parent directory of src file
+    DE *srcDir = loadDir(&ppi->parent[0]);
+    int srcIndex = ppi->index;
+
+    // Copy needed DE info from src
+    char srcFilename[MAX_FILENAME_LEN + 1];
+    strcpy(srcFilename, ppi->lastElement);
+    long srcSize = ppi->parent[ppi->index].size;
+    int srcLocation = ppi->parent[ppi->index].location;
+    time_t srcTimeCreated = ppi->parent[ppi->index].timeCreated;
+    time_t srcTimeAccessed = ppi->parent[ppi->index].timeLastAccessed;
+    time_t srcTimeModified = ppi->parent[ppi->index].timeLastModified;
+
+    int srcDirLocation = ppi->parent[0].location;
+
+    parsePath(dest, ppi);
+    DE *destDir;
+
+    if (ppi->lastElement == NULL) // Case: path is "/"
+    {
+        destDir = loadRootDir(DEFAULT_DE_COUNT);
+    }
+    else
+    {
+        destDir = loadDir(&ppi->parent[ppi->index]);
+    }
+
+    int destDirLocation = ppi->parent[0].location;
+
+    if (srcDirLocation == destDirLocation)
+    {
+        // do nothing, since src and dest are at same directory
+        free(srcDir);
+        srcDir = NULL;
+        free(destDir);
+        destDir = NULL;
+        return 0;
+    }
+
+    int freeIndex = findFreeDE(&ppi->parent[ppi->index]);
+
+    if (freeIndex == -1)
+    {
+        printf("No free entries in %s", ppi->lastElement);
+        free(srcDir);
+        srcDir = NULL;
+        free(destDir);
+        destDir = NULL;
+        return -1;
+    }
+
+    // At this point, it is okay to move src file to dest directory
+
+    // Update DE info at src
+    markUnusedDE(&srcDir[srcIndex]);
+    writeDir(srcDir);
+
+    // Update DE info at dest
+    strcpy(destDir[freeIndex].fileName, srcFilename);
+    destDir[freeIndex].isDir = 0;
+    destDir[freeIndex].location = srcLocation;
+    destDir[freeIndex].size = srcSize;
+    destDir[freeIndex].timeCreated = srcTimeCreated;
+    destDir[freeIndex].timeLastAccessed = srcTimeAccessed;
+    destDir[freeIndex].timeLastModified = srcTimeModified;
+    writeDir(destDir);
+
+    free(srcDir);
+    srcDir = NULL;
+    free(destDir);
+    destDir = NULL;
+    return 0;
 }

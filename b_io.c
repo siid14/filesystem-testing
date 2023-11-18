@@ -28,7 +28,8 @@
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
-#define extend_block_count 10
+#define EXTEND_BLOCK_COUNT 10
+#define MAX_PATH_LEN 4096
 
 typedef struct b_fcb
 {
@@ -40,7 +41,7 @@ typedef struct b_fcb
 	int buflen; // holds how many valid bytes are in the buffer
 	int currentBlock;
 	int accessMode;
-	char *path; // points to the path passed to b_open()
+	char path[MAX_PATH_LEN + 1]; // copy of path passed to b_open(), will be used in b_close()
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -116,7 +117,14 @@ b_io_fd b_open(char *filename, int flags, ppInfo *ppi)
 	}
 
 	// open the file
-	// int fileInfo = fs_open(filename, flags);
+	int fileInfo = fs_open(filename, flags);
+
+	// check for opening file errors
+	if (fileInfo == -1)
+	{
+		printf("b_open: Error opening the file\n");
+		return -1;
+	}
 
 	// allocate a buffer for the file in the FCB
 	// ! don't forget to free this buffer when the file is closed
@@ -186,7 +194,6 @@ int b_seek(b_io_fd fd, off_t offset, int whence)
 	return (0); // Change this
 }
 
-/*
 // Interface to write function
 // fd is the destinatation file descriptor
 // buffer contains the contents to write
@@ -217,7 +224,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	}
 
 	// check if the current size is enough for extra count bytes
-	off_t fileSize = seek(fd, 0, SEEK_END);
+	off_t fileSize = b_seek(fd, 0, SEEK_END);
 
 	if (fileSize + count > fcbArray[fd].fileInfo->size)
 	{
@@ -225,7 +232,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 		int currentBlockNumber = (fcbArray[fd].fileInfo->size +
 								  B_CHUNK_SIZE - 1) /
 								 B_CHUNK_SIZE;
-		int newBlockNumber = currentBlockNumber + extend_block_count;
+		int newBlockNumber = currentBlockNumber + EXTEND_BLOCK_COUNT;
 		int newLocation = allocBlocksCont(newBlockNumber);
 		if (newLocation == -1)
 		{
@@ -302,7 +309,6 @@ int b_write(b_io_fd fd, char *buffer, int count)
 
 	return (bytesReturned); // Change this
 }
-*/
 
 // Interface to read a buffer
 
@@ -352,10 +358,10 @@ int b_read(b_io_fd fd, char *buffer, int count)
 	int bytesDelivered = (fcbArray[fd].currentBlock * B_CHUNK_SIZE) - remain;
 
 	// Check if the requested count exceeds the file size
-	if ((count + bytesDelivered) > fcbArray[fd].fileInfo->fileSize)
+	if ((count + bytesDelivered) > fcbArray[fd].fileInfo->size)
 	{
 		// If yes, limit the count to the remaining bytes until the end of the file
-		count = fcbArray[fd].fileInfo->fileSize - bytesDelivered;
+		count = fcbArray[fd].fileInfo->size - bytesDelivered;
 		// printf("count: %d\n", count);
 	}
 
