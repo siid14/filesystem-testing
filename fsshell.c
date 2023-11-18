@@ -37,7 +37,7 @@
 /****   SET THESE TO 1 WHEN READY TO TEST THAT COMMAND ****/
 #define CMDLS_ON 1
 #define CMDCP_ON 0
-#define CMDMV_ON 0
+#define CMDMV_ON 1
 #define CMDMD_ON 1
 #define CMDRM_ON 1
 #define CMDCP2L_ON 0
@@ -347,24 +347,17 @@ int cmd_mv(int argcnt, char *argvec[])
 {
 // **** TODO ****  For you to implement
 #if (CMDMV_ON == 1)
-	int testfs_src_fd;
-	int testfs_dest_fd;
 	char *src;
 	char *dest;
-	int readcnt;
-	char buf[BUFFERLEN];
 
-	switch (argcnt)
+	if (argcnt != 3)
 	{
-	case 3:
-		src = argvec[1];
-		dest = argvec[2];
-		break;
-
-	default:
-		printf("Usage: mv srcFile destDir\n");
-		return (-1);
+		printf("Usage: mv source dest\n");
+		return -1;
 	}
+
+	src = argvec[1];
+	dest = argvec[2];
 
 	// Check if the source and destination is valid
 	if (fs_isFile(src) != 1)
@@ -372,27 +365,17 @@ int cmd_mv(int argcnt, char *argvec[])
 		printf("Source is not a file\n");
 		return (-1);
 	}
-
-	if(fs_isDir(dest) != 1)
+	else if (fs_isDir(dest) != 1)
 	{
 		printf("Destination is not a directory\n");
 		return (-1);
 	}
-
-	testfs_src_fd = b_open(src, O_RDONLY);
-	testfs_dest_fd = b_open(dest, O_WRONLY | O_CREAT | O_TRUNC);
-	do
+	else
 	{
-		readcnt = b_read(testfs_src_fd, buf, BUFFERLEN);
-		b_write(testfs_dest_fd, buf, readcnt);
-	} while (readcnt == BUFFERLEN);
-	b_close(testfs_src_fd);
-	b_close(testfs_dest_fd);
-
-	if (strcmp(src, dest) != 0)
-	{
-		fs_delete(src);
+		return(fs_move(src, dest));
 	}
+
+	
 
 #endif
 	return 0;
