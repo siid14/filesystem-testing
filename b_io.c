@@ -84,7 +84,7 @@ b_io_fd b_getFCB()
  - a file descriptor (file handle) if the operation is successful
  - returns -1 if there are no available FCBs, errors opening the file, or memory allocation issues.
  */
-b_io_fd b_open(char *filename, int flags, ppInfo *ppi)
+b_io_fd b_open(char *filename, int flags)
 {
 	b_io_fd returnFd;
 
