@@ -22,16 +22,18 @@
 
 #define DEFAULT_DE_COUNT 50
 
+// 0: valid path, -1: invalid path or ppi, -2: Dir not found, or parent is not a dir
+// Take a path cstring and parse the info
 int parsePath(const char *path, ppInfo *ppi)
 {
-    
+
     // update root dir first
     free(rootDir);
     rootDir = NULL;
     rootDir = loadRootDir(DEFAULT_DE_COUNT);
 
     // update cwd if it at root dir
-    if ( cwd[0].location == rootDir[0].location)
+    if (cwd[0].location == rootDir[0].location)
     {
         free(cwd);
         cwd = NULL;
@@ -116,7 +118,6 @@ int parsePath(const char *path, ppInfo *ppi)
         // printf("index of token1: %d\n", index);
         // printf("parent[%d].isDir: %d\n", index ,parent[index].isDir);
         // printf("token2: %s\n", token2);
-       
 
         if (token2 == NULL)
         {
@@ -171,15 +172,15 @@ int parsePath(const char *path, ppInfo *ppi)
         parent = temp;
         token1 = token2;
 
-        //printf("parent[0]: %s\n", parent[0].fileName);
-        // printf("\n\ntoken1: %s\n", token1);
+        // printf("parent[0]: %s\n", parent[0].fileName);
+        //  printf("\n\ntoken1: %s\n", token1);
     }
 }
 
 int findEntryInDir(DE *parent, char *token)
 {
-    //printf("\n---- INSIDE findEntryDir() ----\n");
-    // get the total number of DE in the directory
+    // printf("\n---- INSIDE findEntryDir() ----\n");
+    //  get the total number of DE in the directory
     int numberOfDE = parent[0].size / sizeof(DE);
     // printf("parent[0].size: %ld\n", parent[0].size);
     // printf("numberOfDE: %d\n", numberOfDE);

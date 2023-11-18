@@ -83,7 +83,7 @@ b_io_fd b_getFCB()
  - a file descriptor (file handle) if the operation is successful
  - returns -1 if there are no available FCBs, errors opening the file, or memory allocation issues.
  */
-b_io_fd b_open(char *filename, int flags)
+b_io_fd b_open(char *filename, int flags, ppInfo *ppi)
 {
 	b_io_fd returnFd;
 
@@ -93,7 +93,20 @@ b_io_fd b_open(char *filename, int flags)
 		printf("b_open: File system initialized\n");
 	}
 
-	returnFd = b_getFCB(); // get the file descriptor
+	// validate the path and ppInfo
+	int pathValidationResult = parsePath(filename, ppi);
+
+	if (pathValidationResult == -1)
+	{
+		printf("Invalid path or ppi\n");
+		return -1;
+	}
+	else if (pathValidationResult == -2)
+	{
+		printf("It's not a directory entry - file does not exist, let's create it\n");
+	}
+
+	returnFd = b_getFCB(); // get the file descriptor for the opened file
 
 	// check for error (all FCBs in use)
 	if (returnFd == -1)
@@ -103,16 +116,10 @@ b_io_fd b_open(char *filename, int flags)
 	}
 
 	// open the file
-	int fileInfo = fs_open(filename, flags);
-
-	// check for opening file errors
-	if (fileInfo == -1)
-	{
-		printf("b_open: Error opening the file\n");
-		return -1;
-	}
+	// int fileInfo = fs_open(filename, flags);
 
 	// allocate a buffer for the file in the FCB
+	// ! don't forget to free this buffer when the file is closed
 	fcbArray[returnFd].buf = (char *)malloc(B_CHUNK_SIZE);
 
 	// check for errors in malloc
@@ -125,14 +132,13 @@ b_io_fd b_open(char *filename, int flags)
 	// check if file descriptor is valid and init FCB
 	if (returnFd != -1)
 	{
-		fcbArray[returnFd].index = 0;				  // file pointer position to the beginning of the file
-		fcbArray[returnFd].buflen = 0;				  // buffer length to 0 (buffer is currently empty)
-		fcbArray[returnFd].currentBlock = 0;		  // current block to the first block of the file
-		fcbArray[returnFd].fileInfo = (DE *)fileInfo; // file information with the file's directory entry (DE)
+		fcbArray[returnFd].index = 0;		 // file pointer position to the beginning of the file
+		fcbArray[returnFd].buflen = 0;		 // buffer length to 0 (buffer is currently empty)
+		fcbArray[returnFd].currentBlock = 0; // current block to the first block of the file
 		printf("b_open: FCB initialized successfully\n");
 	}
 
-	// ? if needed, can add a vraiable to track the access mode (read, write, read/write)
+	// ? if needed, can add a variable to track the access mode (read, write, read/write)
 	// check the access mode specified by the flags in a file open operation
 	if ((flags & O_ACCMODE) == O_RDONLY)
 	{
