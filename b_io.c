@@ -355,10 +355,10 @@ int b_read(b_io_fd fd, char *buffer, int count)
 	int bytesDelivered = (fcbArray[fd].currentBlock * B_CHUNK_SIZE) - remain;
 
 	// Check if the requested count exceeds the file size
-	if ((count + bytesDelivered) > fcbArray[fd].fileInfo->fileSize)
+	if ((count + bytesDelivered) > fcbArray[fd].fileInfo->size)
 	{
 		// If yes, limit the count to the remaining bytes until the end of the file
-		count = fcbArray[fd].fileInfo->fileSize - bytesDelivered;
+		count = fcbArray[fd].fileInfo->size - bytesDelivered;
 		// printf("count: %d\n", count);
 	}
 

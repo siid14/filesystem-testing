@@ -40,7 +40,6 @@ typedef struct DE
 {
   char fileName[MAX_FILENAME_LEN + 1]; // file name cstring, +1 for the NULL
   unsigned long size;                  // size of the directory/file in bytes
-  unsigned long fileSize;
   unsigned int location;               // starting block number of the directory/file
 
   unsigned int isDir; // flag indicating if this entry is a directory (1) or a file (0)
@@ -105,6 +104,8 @@ int fs_setcwd(char *pathname); // linux chdir
 int fs_isFile(char *filename); // return 1 if file, 0 otherwise
 int fs_isDir(char *pathname);  // return 1 if directory, 0 otherwise
 int fs_delete(char *filename); // removes a file
+
+int fs_move(char *src, char* dest); // moves a file
 
 // This is the strucutre that is filled in from a call to fs_stat
 struct fs_stat
