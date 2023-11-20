@@ -116,16 +116,6 @@ b_io_fd b_open(char *filename, int flags)
 		return -1;
 	}
 
-	// open the file
-	int fileInfo = fs_open(filename, flags);
-
-	// check for opening file errors
-	if (fileInfo == -1)
-	{
-		printf("b_open: Error opening the file\n");
-		return -1;
-	}
-
 	// allocate a buffer for the file in the FCB
 	// ! don't forget to free this buffer when the file is closed
 	fcbArray[returnFd].buf = (char *)malloc(B_CHUNK_SIZE);
