@@ -29,19 +29,23 @@
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 #define EXTEND_BLOCK_COUNT 10
-#define MAX_PATH_LEN 4096
 
 typedef struct b_fcb
 {
 	/** TODO add al the information you need in the file control block **/
-	DE *fileInfo;
+
+	DE *fileInfo; // Directory entry of the file
+
 	// extent * ExtentTable;
 	char *buf;	// holds the open file buffer
 	int index;	// holds the current position in the buffer
 	int buflen; // holds how many valid bytes are in the buffer
 	int currentBlock;
 	int accessMode;
-	char path[MAX_PATH_LEN + 1]; // copy of path passed to b_open(), will be used in b_close()
+	int fileIndex; // the file pointer position
+
+	int parentLocation; // the starting block num of parent directory
+	int indexInParent;	// The index of file in parent
 } b_fcb;
 
 b_fcb fcbArray[MAXFCBS];
@@ -66,10 +70,9 @@ b_io_fd b_getFCB()
 	for (int i = 0; i < MAXFCBS; i++)
 	{
 		if (fcbArray[i].buf == NULL)
-			if (fcbArray[i].buf == NULL)
-			{
-				return i; // Not thread safe (But do not worry about it for this assignment)
-			}
+		{
+			return i; // Not thread safe (But do not worry about it for this assignment)
+		}
 	}
 	return (-1); // all in use
 }
@@ -91,20 +94,7 @@ b_io_fd b_open(char *filename, int flags)
 	if (startup == 0)
 	{
 		b_init(); // initialize our system
-		printf("b_open: File system initialized\n");
-	}
-
-	// validate the path and ppInfo
-	int pathValidationResult = parsePath(filename, ppi);
-
-	if (pathValidationResult == -1)
-	{
-		printf("Invalid path or ppi\n");
-		return -1;
-	}
-	else if (pathValidationResult == -2)
-	{
-		printf("It's not a directory entry - file does not exist, let's create it\n");
+				  // printf("b_open: File system initialized\n");
 	}
 
 	returnFd = b_getFCB(); // get the file descriptor for the opened file
@@ -116,46 +106,91 @@ b_io_fd b_open(char *filename, int flags)
 		return -1;
 	}
 
-	// allocate a buffer for the file in the FCB
-	// ! don't forget to free this buffer when the file is closed
-	fcbArray[returnFd].buf = (char *)malloc(B_CHUNK_SIZE);
+	// validate the path and ppInfo
+	int pathValidationResult = parsePath(filename, ppi);
 
-	// check for errors in malloc
-	if (fcbArray[returnFd].buf == NULL)
+	if (pathValidationResult != 0 || ppi->lastElement == NULL)
 	{
-		printf("b_open: Error allocating memory for file buffer\n");
+		printf("Invalid path\n");
 		return -1;
 	}
 
-	// check if file descriptor is valid and init FCB
-	if (returnFd != -1)
+	// Case: path is valid, but it is a directory
+	if (ppi->index != -1 && ppi->parent[ppi->index].isDir == 1)
 	{
-		fcbArray[returnFd].index = 0;		 // file pointer position to the beginning of the file
-		fcbArray[returnFd].buflen = 0;		 // buffer length to 0 (buffer is currently empty)
-		fcbArray[returnFd].currentBlock = 0; // current block to the first block of the file
-		printf("b_open: FCB initialized successfully\n");
+		printf("b_open(): Invalid path for a file\n");
+		return -1;
 	}
 
-	// ? if needed, can add a variable to track the access mode (read, write, read/write)
-	// check the access mode specified by the flags in a file open operation
-	if ((flags & O_ACCMODE) == O_RDONLY)
+	fcbArray[returnFd].buf = malloc(B_CHUNK_SIZE);
+	fcbArray[returnFd].fileInfo = malloc(sizeof(DE));
+	if (fcbArray[returnFd].buf == NULL || fcbArray[returnFd].fileInfo == NULL)
 	{
-		printf("b_open: Opening file for read...\n");
+		printf("malloc failed in b_open()\n");
+		return -1;
 	}
-	else if ((flags & O_ACCMODE) == O_WRONLY)
+
+	// populate needed fields
+	fcbArray[returnFd].buflen = B_CHUNK_SIZE;
+	fcbArray[returnFd].currentBlock = 0;
+	fcbArray[returnFd].fileIndex = 0;
+	fcbArray[returnFd].index = 0;
+	fcbArray[returnFd].parentLocation = ppi->parent[0].location;
+	fcbArray[returnFd].accessMode = flags;
+
+	// Case: file does not exist && flag is O_CREATE
+	if (ppi->index == -1)
 	{
-		printf("b_open: Opening file for write...\n");
-	}
-	else if ((flags & O_ACCMODE) == O_RDWR)
-	{
-		printf("b_open: Opening file for read and write...\n");
+
+		if (flags & O_CREAT)
+		{
+			// printf("inside O_CREAT\n");
+			int freeIndex = findFreeDE(ppi->parent);
+			if (freeIndex == -1)
+			{
+				printf("Error: no free entry in parent directory [%s]\n", ppi->parent[0].fileName);
+				return (-1);
+			}
+			// printf("b_open indexInParent: %d\n", fcbArray[returnFd].indexInParent);
+			fcbArray[returnFd].indexInParent = freeIndex;
+			// printf("b_open indexInParent: %d\n", fcbArray[returnFd].indexInParent);
+			// printf("b_open returnFd: %d\n", returnFd);
+
+			// Create DE info for b_io
+
+			strcpy(fcbArray[returnFd].fileInfo->fileName, ppi->lastElement);
+			fcbArray[returnFd].fileInfo->isDir = 0;
+			fcbArray[returnFd].fileInfo->location = allocBlocksCont(1);
+			fcbArray[returnFd].fileInfo->size = 0;
+		}
+		else
+		{
+			printf("Cannot find [%s] in [%s]\n", ppi->lastElement, ppi->parent[0].fileName);
+			return -1;
+		}
 	}
 	else
 	{
-		printf("b_open: Invalid access mode\n");
-		return -1;
+		// Case: O_TRUNC flag
+		if (flags & O_TRUNC)
+		{
+			fcbArray[returnFd].indexInParent = ppi->index;
+			freeBlocksDE(&ppi->parent[ppi->index]);
+			markUnusedDE(&ppi->parent[ppi->index]);
+		}
+		else
+		{
+			fcbArray[returnFd].indexInParent = ppi->index;
+
+			// Get DE info for b_io
+			strcpy(fcbArray[returnFd].fileInfo->fileName, ppi->lastElement);
+			fcbArray[returnFd].fileInfo->isDir = 0;
+			fcbArray[returnFd].fileInfo->location = ppi->parent[ppi->index].location;
+			fcbArray[returnFd].fileInfo->size = ppi->parent[ppi->index].size;
+		}
 	}
 
+	// printf("\n\n---- b_open() finished ----\n\n");
 	return (returnFd); // all set
 }
 
@@ -181,7 +216,35 @@ int b_seek(b_io_fd fd, off_t offset, int whence)
 		return (-1); // invalid file descriptor
 	}
 
-	return (0); // Change this
+	switch (whence)
+	{
+	case SEEK_SET: // start from beginning of the file
+		fcbArray[fd].fileIndex = offset;
+
+		if (fcbArray[fd].fileIndex > fcbArray[fd].fileInfo->size)
+		{
+			fcbArray[fd].fileIndex = fcbArray[fd].fileInfo->size;
+		}
+
+		break;
+	case SEEK_END: // end of file
+		fcbArray[fd].fileIndex = fcbArray[fd].fileInfo->size;
+
+		break;
+	case SEEK_CUR: // move file pointer based on the offset
+		fcbArray[fd].fileIndex += offset;
+
+		if (fcbArray[fd].fileIndex > fcbArray[fd].fileInfo->size)
+		{
+			fcbArray[fd].fileIndex = fcbArray[fd].fileInfo->size;
+		}
+
+		break;
+	default:
+		return -1;
+	}
+
+	return fcbArray[fd].fileIndex;
 }
 
 // Interface to write function
@@ -426,45 +489,60 @@ int b_read(b_io_fd fd, char *buffer, int count)
 // Interface to Close the file
 int b_close(b_io_fd fd)
 {
+	DE *tempDir = loadDirLocation(fcbArray[fd].parentLocation);
+
+	// printf("b_close indexInParent: %d\n", fcb->indexInParent);
+	// printf("b_ returnFd: %d\n", fd);
+
 	// write unused buffer
-	if (fcbArray[fd].index < B_CHUNK_SIZE)
+	if (fcbArray[fd].fileInfo->size > 0 && fcbArray[fd].index < B_CHUNK_SIZE)
 	{
 		char *temp = malloc(B_CHUNK_SIZE);
-		memcpy(temp, fcbArray[fd].buf, fcbArray[fd].index + 1);
+		int remain = B_CHUNK_SIZE - fcbArray[fd].index;
+		memcpy(temp, fcbArray[fd].buf, remain);
 		LBAwrite(temp, 1, fcbArray[fd].fileInfo->location + fcbArray[fd].currentBlock);
 		free(temp);
+		temp = NULL;
 	}
 
-	// update parent DEs
-	int validPath = parsePath(fcbArray[fd].path, ppi);
-
-	if (validPath != 0)
+	// Update parent DE info
+	if (fcbArray[fd].accessMode & O_TRUNC)
 	{
-		printf("In b_open(), parsePath() return invalid\n");
-		return 1;
+		writeDir(tempDir);
 	}
-
-	int freeIndex = findFreeDE(ppi->parent);
-
-	strcpy(ppi->parent[freeIndex].fileName, ppi->lastElement);
-	ppi->parent[freeIndex].size = fcbArray[fd].fileInfo->size;
-	ppi->parent[freeIndex].isDir = fcbArray[fd].fileInfo->isDir;
-	ppi->parent[freeIndex].location = fcbArray[fd].fileInfo->location;
-
-	int blockCount = (ppi->parent->size + vcb->blockSize - 1) / vcb->blockSize;
-
-	// write parent dir to disk
-	int checkVal = LBAwrite(ppi->parent, blockCount, ppi->parent->location);
-
-	if (checkVal != blockCount)
+	else
 	{
-		printf("\nError: LBAwrite() failed in b_close(), b_io.c\n");
-		return 1;
+		int indexInParent = fcbArray[fd].indexInParent;
+
+		strcpy(tempDir[indexInParent].fileName, fcbArray[fd].fileInfo->fileName);
+		tempDir[indexInParent].size = fcbArray[fd].fileInfo->size;
+		tempDir[indexInParent].isDir = fcbArray[fd].fileInfo->isDir;
+		tempDir[indexInParent].location = fcbArray[fd].fileInfo->location;
+
+		time_t t = time(NULL);
+		if (fcbArray[fd].accessMode & O_CREAT)
+		{
+			tempDir[indexInParent].timeCreated = t;
+			tempDir[indexInParent].timeLastAccessed = t;
+			tempDir[indexInParent].timeLastModified = t;
+		}
+		else
+		{
+			tempDir[indexInParent].timeLastAccessed = t;
+			tempDir[indexInParent].timeLastModified = t;
+		}
+
+		writeDir(tempDir);
 	}
 
 	free(fcbArray[fd].buf);
 	fcbArray[fd].buf = NULL;
 
+	free(fcbArray[fd].fileInfo);
 	fcbArray[fd].fileInfo = NULL;
+
+	free(tempDir);
+	tempDir = NULL;
+
 	return 0;
 }
