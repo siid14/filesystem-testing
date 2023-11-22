@@ -846,7 +846,9 @@ int fs_move(char *src, char *dest)
         destDir = loadDir(&ppi->parent[ppi->index]);
     }
 
-    int destDirLocation = ppi->parent[0].location;
+    int destDirLocation = ppi->parent[ppi->index].location;
+    // printf("srcDirLocation: %d\n", srcDirLocation);
+    // printf("destDirLocation: %d\n", destDirLocation);
 
     if (srcDirLocation == destDirLocation)
     {
@@ -858,7 +860,7 @@ int fs_move(char *src, char *dest)
         return 0;
     }
 
-    int freeIndex = findFreeDE(&ppi->parent[ppi->index]);
+    int freeIndex = findFreeDE(destDir);
 
     if (freeIndex == -1)
     {
@@ -872,7 +874,7 @@ int fs_move(char *src, char *dest)
 
     // At this point, it is okay to move src file to dest directory
 
-    // Update DE info at src
+    // Claer DE info at src
     markUnusedDE(&srcDir[srcIndex]);
     writeDir(srcDir);
 
