@@ -410,7 +410,8 @@ int fs_isDir(char *pathname)
             return 1;
         }
 
-        if (ppi->parent[ppi->index].isDir == 0)
+        // Case: does not exit, or is a file
+        if (ppi->parent[ppi->index].isDir == 0 || ppi->index == -1)
         {
             // printf("\nThis file is not a directory\n");
             return 0;
@@ -439,8 +440,8 @@ int fs_isFile(char *filename)
     }
     else
     {
-        // Case: path is "/"
-        if (ppi->lastElement == NULL)
+        // Case: path is "/", or does not exist
+        if (ppi->lastElement == NULL || ppi->index == -1)
         {
             return 0;
         }
@@ -836,19 +837,19 @@ int fs_move(char *src, char *dest)
 
     parsePath(dest, ppi);
     DE *destDir;
+    int destDirLocation;
 
     if (ppi->lastElement == NULL) // Case: path is "/"
     {
         destDir = loadRootDir(DEFAULT_DE_COUNT);
+        destDirLocation = ppi->parent[0].location;
     }
     else
     {
         destDir = loadDir(&ppi->parent[ppi->index]);
+        destDirLocation = ppi->parent[ppi->index].location;
     }
 
-    int destDirLocation = ppi->parent[ppi->index].location;
-    // printf("srcDirLocation: %d\n", srcDirLocation);
-    // printf("destDirLocation: %d\n", destDirLocation);
 
     if (srcDirLocation == destDirLocation)
     {
