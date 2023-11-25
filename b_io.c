@@ -1,15 +1,20 @@
 /**************************************************************
  * Class:  CSC-415-0# Fall 2021
- * Names:
- * Student IDs:
- * GitHub Name:
- * Group Name:
+ * Names: Sidney Thomas, Hoang-Anh Tran, Ruxue Jin, Yee-Tsing Yang
+ * Student IDs: 918656419, 922617784, 923092817, 922359864
+ * GitHub Name: siid14, htran31, RuxueJ, Y-Y1Q
+ * Group Name: Alibaba
  * Project: Basic File System
  *
  * File: b_io.c
  *
- * Description: Basic File System - Key File I/O Operations
- *
+ * Description: This header file implements a basic file system handling file operations
+ *              such as opening, seeking, reading, writing, and closing files.
+ *              Functions like `b_open`, `b_seek`, `b_write`, `b_read`, and `b_close`
+ *              manage file descriptors, positions, data I/O, and file closure.
+ *              The `b_init` function initializes the system, `b_getFCB` gets free File Control Blocks,
+ *              and `b_fcb` defines the file control block structure.
+ *              The implementation utilizes system libraries for I/O, memory, and system calls.
  **************************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -27,7 +32,6 @@
 #include "fsLow.h"
 
 #define MAXFCBS 20
-
 
 typedef struct b_fcb
 {
@@ -520,7 +524,7 @@ int b_close(b_io_fd fd)
 	{
 		return (-1); // invalid file descriptor
 	}
-	
+
 	DE *tempDir = loadDirLocation(fcbArray[fd].parentLocation);
 
 	// printf("b_close indexInParent: %d\n", fcb->indexInParent);

@@ -8,8 +8,11 @@
  *
  * File: fsDir.c
  *
- * Description:  init directory.
- *
+ * Description: Handles directory operations in the basic file system.
+ *              Provides functions for initializing, creating, deleting directories,
+ *              checking path types (directory or file), traversing directories, and managing directory entries.
+ *              Includes operations to move files between directories
+ *              and utility functions for directory management within the file system.
  **************************************************************/
 
 #include <string.h>
@@ -849,7 +852,6 @@ int fs_move(char *src, char *dest)
         destDir = loadDir(&ppi->parent[ppi->index]);
         destDirLocation = ppi->parent[ppi->index].location;
     }
-
 
     if (srcDirLocation == destDirLocation)
     {

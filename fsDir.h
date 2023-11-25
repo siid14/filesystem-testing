@@ -8,7 +8,11 @@
  *
  * File: fsDir.h
  *
- * Description:  ...
+ * Description:  This header defines functions and structures for directory operations
+ *               within the basic file system. It includes functionalities for initializing directories,
+ *               managing directory entries, path manipulation, checking directory emptiness,
+ *               and handling directory-related file system operations
+ *               such as freeing blocks and writing directories to disk.
  *
  **************************************************************/
 #ifndef _FS_DIR_H

@@ -1,15 +1,18 @@
 /**************************************************************
  * Class:  CSC-415-0#  Fall 2021
- * Names:
- * Student IDs:
- * GitHub Name:
- * Group Name:
+ * Names: Sidney Thomas, Hoang-Anh Tran, Ruxue Jin, Yee-Tsing Yang
+ * Student IDs: 918656419, 922617784, 923092817, 922359864
+ * GitHub Name: siid14, htran31, RuxueJ, Y-Y1Q
+ * Group Name: Alibaba
  * Project: Basic File System
  *
  * File: b_io.h
  *
- * Description: Interface of basic I/O functions
- *
+ * Description: This header file defines functions for basic file system operations,
+ *              including file opening, reading, writing, seeking, and closing.
+ *              It introduces a file descriptor type 'b_io_fd' and functions
+ *              such as 'b_open', 'b_read', 'b_write', 'b_seek', and 'b_close'
+ *              for handling file I/O with specified file descriptors and operations.
  **************************************************************/
 
 #ifndef _B_IO_H

@@ -1,18 +1,23 @@
 /**************************************************************
  * Class:  CSC-415-0# - Summer 2023
- * Names:
- * Student IDs:
- * GitHub Name:
+ * Names: Sidney Thomas, Hoang-Anh Tran, Ruxue Jin, Yee-Tsing Yang
+ * Student IDs: 918656419, 922617784, 923092817, 922359864
+ * GitHub Name: siid14, htran31, RuxueJ, Y-Y1Q
  * Group Name:
  * Project: Basic File System
  *
  * File: fsShell.c
  *
- * Description: Main driver for file system assignment.
- *
  * Make sure to set the #defined on the CMDxxxx_ON from 0 to 1
  * when you are ready to test that feature
  *
+ * Description: This file implements a simple shell interface for a basic file system.
+ * 				It contains functionalities to interact with the file system
+ * 				such as listing files (ls), copying files (cp), moving files (mv),
+ * 				creating directories (md), removing files/directories (rm), manipulating file contents (touch, cat),
+ * 				changing directories (cd), printing the working directory (pwd), and displaying command history.
+ * 				The commands can be executed through this shell interface, providing users with basic file system
+ * 				functionalities similar to a standard command-line interface.
  **************************************************************/
 
 #include <stdlib.h>
@@ -372,10 +377,8 @@ int cmd_mv(int argcnt, char *argvec[])
 	}
 	else
 	{
-		return(fs_move(src, dest));
+		return (fs_move(src, dest));
 	}
-
-	
 
 #endif
 	return 0;

@@ -8,10 +8,12 @@
  *
  * File: fsFree.h
  *
- * Description: Interface for free space management
- *
- *
- *
+ * Description: This header file contains declarations for managing free space
+ *              within the basic file system. It provides methods for initializing
+ *              and loading free space, setting bits to mark blocks as used or free,
+ *              finding free blocks, and allocating contiguous or extent-based blocks.
+ *              The functions defined here enable the efficient handling of block allocation and deallocation,
+ *              contributing to the effective management of available free space in the file system.
  **************************************************************/
 #ifndef _FS_FREE_H
 #define _FS_FREE_H
