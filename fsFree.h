@@ -54,7 +54,5 @@ int getFreeBlockNum();
 // return the starting blockNum, -1 if free blocks are not enough
 int allocBlocksCont(int blocksNeeded);
 
-int releaseBlocksCont(int start, int count); // not needed for M1
-
 
 #endif
