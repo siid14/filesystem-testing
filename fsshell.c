@@ -14,9 +14,11 @@
  * Description: This file implements a simple shell interface for a basic file system.
  * 				It contains functionalities to interact with the file system
  * 				such as listing files (ls), copying files (cp), moving files (mv),
- * 				creating directories (md), removing files/directories (rm), manipulating file contents (touch, cat),
- * 				changing directories (cd), printing the working directory (pwd), and displaying command history.
- * 				The commands can be executed through this shell interface, providing users with basic file system
+ * 				creating directories (md), removing files/directories (rm),
+ * 				manipulating file contents (touch, cat), changing directories (cd),
+ * 				printing the working directory (pwd), and displaying command history.
+ * 				The commands can be executed through this shell interface,
+ * 				providing users with basic file system
  * 				functionalities similar to a standard command-line interface.
  **************************************************************/
 

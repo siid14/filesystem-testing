@@ -8,11 +8,12 @@
  *
  * File: fsFree.c
  *
- * Description: This file implements functions for managing free space within the basic file system.
- *              It includes methods for initializing free space, loading free space from disk,
- *              setting bits to mark blocks as used or free, finding free blocks, and allocating contiguous
- *              or extent-based blocks. The functions here enable the system to handle block allocation,
- *              deallocation, and tracking of available free space efficiently within the file system.
+ * Description: This file implements functions for managing free space
+ *              within the basic file system. It includes methods for initializing free space,
+ *              loading free space from disk, setting bits to mark blocks as used or free,
+ *              finding free blocks, and allocating contiguous or extent-based blocks.
+ *              The functions here enable the system to handle block allocation, deallocation,
+ *              and tracking of available free space efficiently within the file system.
  **************************************************************/
 #include <stdio.h>
 #include <stdlib.h>

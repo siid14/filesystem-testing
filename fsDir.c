@@ -10,7 +10,8 @@
  *
  * Description: Handles directory operations in the basic file system.
  *              Provides functions for initializing, creating, deleting directories,
- *              checking path types (directory or file), traversing directories, and managing directory entries.
+ *              checking path types (directory or file),
+ *              traversing directories, and managing directory entries.
  *              Includes operations to move files between directories
  *              and utility functions for directory management within the file system.
  **************************************************************/

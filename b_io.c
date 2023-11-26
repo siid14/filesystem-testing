@@ -12,7 +12,8 @@
  *              such as opening, seeking, reading, writing, and closing files.
  *              Functions like `b_open`, `b_seek`, `b_write`, `b_read`, and `b_close`
  *              manage file descriptors, positions, data I/O, and file closure.
- *              The `b_init` function initializes the system, `b_getFCB` gets free File Control Blocks,
+ *              The `b_init` function initializes the system,
+ * 		        `b_getFCB` gets free File Control Blocks,
  *              and `b_fcb` defines the file control block structure.
  *              The implementation utilizes system libraries for I/O, memory, and system calls.
  **************************************************************/

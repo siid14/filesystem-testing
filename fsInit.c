@@ -9,15 +9,14 @@
  * File: fsInit.c
  * This file is where you will start and initialize your system
  *
- * Description: The 'fsInit.c' file serves as the starting point for initializing the file system.
- * 				It begins by determining if the volume needs formatting based on the VCB's signature.
+ * Description: The 'fsInit.c' file is the starting point for initializing the file system.
+ * 				It determine if the volume needs formatting based on the VCB's signature.
  * 				If initialization is required, it sets up the VCB, initializes free space,
- * 				and creates the root directory. Otherwise, it reloads the necessary data, such as free space information.
- * 				It manages the initialization of various file system components,
- * 				including the VCB, free space, root directory, and current working directory.
- * 				Additionally, this file contains functions to exit the file system cleanly by freeing allocated memory.
- *
- *
+ * 				and creates the root directory. Otherwise, it reloads the necessary data,
+ * 				such as free space information. It manages the initialization
+ * 				of various file system components, including the VCB, free space, root directory,
+ * 			    and current working directory. Additionally, this file contains functions to exit
+ * 				the file system cleanly by freeing allocated memory.
  **************************************************************/
 
 #include <stdlib.h>
