@@ -6,17 +6,20 @@
  *
  * File: mfs.h
  *
- * Description: The 'mfs.h' header file defines structures and functions essential for managing file system operations.
- *              It contains structures such as 'DE' (Directory Entry) and 'VCB' (Volume Control Block)
- *              that represent file metadata and volume information, respectively.
- *              This header provides functionalities for directory manipulation, including creating
- *              and removing directories ('fs_mkdir' and 'fs_rmdir'), iterating
- *              through directories ('fs_opendir', 'fs_readdir', and 'fs_closedir'),
- *              as well as miscellaneous operations like getting the current working directory ('fs_getcwd'),
- *              setting the current directory ('fs_setcwd'), file and directory checks ('fs_isFile', 'fs_isDir'),
- *              deletion ('fs_delete'), moving files ('fs_move'), and obtaining file statistics ('fs_stat').
- *              Additionally, it defines structures like 'fs_diriteminfo'
- *              and 'fs_stat' used for providing directory entry information and file statistics, respectively.
+ * Description: The 'mfs.h' header file defines structures and functions 
+ * essential for managing file system operations. It contains structures 
+ * such as 'DE' (Directory Entry) and 'VCB' (Volume Control Block) that 
+ * represent file metadata and volume information, respectively. This 
+ * header provides functionalities for directory manipulation, including 
+ * creating and removing directories ('fs_mkdir' and 'fs_rmdir'), iterating
+ * through directories ('fs_opendir', 'fs_readdir', and 'fs_closedir'),
+ * as well as miscellaneous operations like getting the current working 
+ * directory ('fs_getcwd'), setting the current directory ('fs_setcwd'), 
+ * file and directory checks ('fs_isFile', 'fs_isDir'), deletion ('fs_delete'),
+ * moving files ('fs_move'), and obtaining file statistics ('fs_stat').
+ * Additionally, it defines structures like 'fs_diriteminfo' * and 'fs_stat'
+ *  used for providing directory entry information and file statistics, 
+ * respectively.
  **************************************************************/
 #ifndef _MFS_H
 #define _MFS_H

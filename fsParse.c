@@ -8,23 +8,17 @@
  *
  * File: fsParse.c
  *
-<<<<<<< HEAD
  * Description: 
- *
- *
- *
-=======
- * Description: The 'fsParse.c' file contains functions for parsing paths
- *              and managing directory entries in the file system.
- *              The 'parsePath' function takes a path string, parses its components,
- *              and updates the path parsing information (ppInfo).
- *              It handles the process of identifying directories and elements within the path,
- *              validating the path's existence, and updating the ppInfo structure accordingly.
- *              Additionally, the 'findEntryInDir' and 'loadDir' functions facilitate locating entries within a directory
- *              and loading directory information from disk, respectively.
- *              Furthermore, the 'loadRootDir' function is responsible
- *              for loading the root directory during system initialization.
->>>>>>> 719ec8fee50835440bb02527941aa5589b679177
+ * The 'fsParse.c' file contains functions for parsing paths
+ * and managing directory entries in the file system. The 'parsePath' 
+ * function takes a path string, parses its components, and updates 
+ * the path parsing information (ppInfo). It handles the process of 
+ * identifying directories and elements within the path, validating 
+ * the path's existence, and updating the ppInfo structure accordingly.
+ * Additionally, the 'findEntryInDir' and 'loadDir' functions facilitate 
+ * locating entries within a directory and loading directory information 
+ * from disk, respectively. Furthermore, the 'loadRootDir' function is 
+ * responsible for loading the root directory during system initialization.
  **************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,8 +47,6 @@ int parsePath(const char *path, ppInfo *ppi)
         cwd = loadRootDir(DEFAULT_DE_COUNT);
     }
 
-    // printf("\n\n--------------   START parsePath() ---------------\n");
-    // printf("\npath: %s\n", path);
 
     char *mutablePath = strdup(path);
     if (mutablePath == NULL)
@@ -87,14 +79,11 @@ int parsePath(const char *path, ppInfo *ppi)
         startDir = cwd;
     }
 
-    // printf("startDir[0]: %s\n", startDir[0].fileName);
+   
 
     parent = startDir;
     token1 = strtok_r(mutablePath, "/", &savePtr);
    
-
-    // printf("parent[0]: %s\n", parent[0].fileName);
-    // printf("token1: %s\n", token1);
 
     if (token1 == NULL)
     {
@@ -104,35 +93,18 @@ int parsePath(const char *path, ppInfo *ppi)
             ppi->parent = parent;
             ppi->index = -1;
             ppi->lastElement = NULL;
-
-            // printf("\n\nUpdated parse path info\n");
-            // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
-            // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
-            // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
-            // printf("Last element: %s\n", ppi->lastElement);
-            // printf("Index of last element in parent: %d\n", ppi->index);
-
-            // printf("\n\n--------------   END parsePath() ---------------\n");
             return (0);
         }
 
-        // printf("\n\n--------------   END parsePath() ---------------\n");
         return (-1);
     }
 
     while (token1 != NULL)
     {
-        // printf("\n\n Inside while (token1 != NULL)\n");
-
+       
         index = findEntryInDir(parent, token1);
-        // printf("\n---- OUTSIDE findEntryDir() ----\n");
-
+      
         token2 = strtok_r(NULL, "/", &savePtr);
-
-        // printf("\n\ntoken1: %s\n", token1);
-        // printf("index of token1: %d\n", index);
-        // printf("parent[%d].isDir: %d\n", index ,parent[index].isDir);
-        // printf("token2: %s\n", token2);
 
         if (token2 == NULL)
         {
@@ -141,22 +113,12 @@ int parsePath(const char *path, ppInfo *ppi)
             ppi->lastElement = strdup(token1);
             ppi->index = index;
 
-            // printf("\n\nUpdated parse path info\n");
-            // printf("Parent dir[0]: %s\n", ppi->parent[0].fileName);
-            // printf("Parent dir[1]: %s\n", ppi->parent[1].fileName);
-            // printf("Parent dir[2]: %s\n", ppi->parent[2].fileName);
-            // printf("Last element: %s\n", ppi->lastElement);
-            // printf("Index of last element in parent: %d\n", ppi->index);
-
-            // printf("\n\n--------------   END parsePath() ---------------\n");
             return (0);
         }
 
         if (index == -1)
         {
             printf("Cannot find [%s] in directory[%s]\n", token1, parent[0].fileName);
-
-            // printf("\n\n--------------   END parsePath() ---------------\n");
 
             return (-2);
         }
@@ -165,8 +127,6 @@ int parsePath(const char *path, ppInfo *ppi)
         {
             printf("[%s] in Parent[%s] is not a directory", parent[index].fileName, parent[0].fileName);
 
-            // printf("\n\n--------------   END parsePath() ---------------\n");
-
             return (-2);
         }
 
@@ -174,7 +134,6 @@ int parsePath(const char *path, ppInfo *ppi)
 
         if (temp == NULL)
         {
-            // printf("\n\n--------------   END parsePath() ---------------\n");
             return (-1);
         }
 
@@ -187,18 +146,15 @@ int parsePath(const char *path, ppInfo *ppi)
         parent = temp;
         token1 = token2;
 
-        // printf("parent[0]: %s\n", parent[0].fileName);
-        //  printf("\n\ntoken1: %s\n", token1);
     }
 }
 
 int findEntryInDir(DE *parent, char *token)
 {
-    // printf("\n---- INSIDE findEntryDir() ----\n");
+   
     //  get the total number of DE in the directory
     int numberOfDE = parent[0].size / sizeof(DE);
-    // printf("parent[0].size: %ld\n", parent[0].size);
-    // printf("numberOfDE: %d\n", numberOfDE);
+  
 
     for (int i = 0; i < numberOfDE; i++)
     {
@@ -239,17 +195,12 @@ DE *loadDir(DE *parent)
 DE *loadRootDir(int initialDirEntries)
 {
 
-    // printf("\n--- in loadRootDir() ---\n");
-
     int bytesNeeded = sizeof(DE) * initialDirEntries;
-    // printf("Size of one entry: %ld\n", sizeof(DE));
-    // printf("Bytes needed for %d entris: %d\n", initialDirEntries, bytesNeeded);
-
+ 
     int blocksNeeded = (bytesNeeded + (vcb->blockSize - 1)) / vcb->blockSize;
-    // printf("blocksNeeded in loadRootDir(): %d\n", blocksNeeded);
 
     int bytesMalloc = blocksNeeded * vcb->blockSize;
-    // printf("Bytes malloc: %d\n", bytesMalloc);
+   
 
     DE *tempDir = (DE *)malloc(bytesMalloc);
     if (tempDir == NULL)
@@ -260,14 +211,11 @@ DE *loadRootDir(int initialDirEntries)
 
     int ret = LBAread(tempDir, blocksNeeded, vcb->rootDirLocation);
 
-    // printf("block read: %d\n", ret);
-
     if (ret != blocksNeeded)
     {
         printf("Error: LBAread() returned %d in loadRootDir()\n", ret);
         return NULL;
     }
 
-    // printf("\n--- out loadRootDir() ---\n");
     return tempDir;
 }

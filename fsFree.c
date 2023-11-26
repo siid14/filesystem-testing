@@ -8,11 +8,13 @@
  *
  * File: fsFree.c
  *
- * Description: This file implements functions for managing free space within the basic file system.
- *              It includes methods for initializing free space, loading free space from disk,
- *              setting bits to mark blocks as used or free, finding free blocks, and allocating contiguous
- *              or extent-based blocks. The functions here enable the system to handle block allocation,
- *              deallocation, and tracking of available free space efficiently within the file system.
+ * Description: 
+ * This file implements functions for managing free space within the basic 
+ * file system. It includes methods for initializing free space, loading free 
+ * space from disk, setting bits to mark blocks as used or free, finding free 
+ * blocks, and allocating contiguous or extent-based blocks. The functions 
+ * here enable the system to handle block allocation, deallocation, and 
+ * tracking of available free space efficiently within the file system.
  **************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +30,7 @@ int bitMapSizeBits;
 // use value provided in fsInit.c to initialize bitmap
 int initFreeSpace(int blockCount, int bytesPerBlock)
 {
-    // printf("\n------ INSIDE initFreeSpace() ------\n");
+   
     bitMapSizeBits = blockCount;
     // number of blocks = number of bits in bitmap
     // 1 byte = 8 bit, calculate the bytes needed for  ceiling round up
@@ -45,8 +47,7 @@ int initFreeSpace(int blockCount, int bytesPerBlock)
     unsigned int blocksInitUsed = blocksBitmap + 1;
 
     int bitMapBytesMalloc = blocksBitmap * bytesPerBlock;
-    // printf("bitMapSizeBytes: %d\n", bitMapSizeBytes);
-    // printf("bitMapBytesMalloc: %d\n", bitMapBytesMalloc);
+
     bitMap = malloc(bitMapBytesMalloc);
 
     // Initialize bit map
@@ -106,13 +107,18 @@ int loadFreeSpace(int blockCount, int bytesPerBlock)
 // set the bit corresponding to blockNum to 1 (mark the block as used)
 void setBitUsed(unsigned int blockNum)
 {
-    unsigned int byteIndex = blockNum / 8; // calculate the byte index in the bitmap
-    unsigned int bitIndex = blockNum % 8;  // calculate the bit index within the byte
+    // calculate the byte index in the bitmap
+    unsigned int byteIndex = blockNum / 8; 
 
-    unsigned char mask = 1 << (7 - bitIndex); // create a 1-byte mask with 1 at the bit position
-                                              // 0 for other bits
+    // calculate the bit index within the byte
+    unsigned int bitIndex = blockNum % 8;  
 
-    bitMap[byteIndex] = bitMap[byteIndex] | mask; // set the bit at the specified position to 1
+    //create a 1-byte mask with 1 at the bit position
+    // 0 for other bits
+    unsigned char mask = 1 << (7 - bitIndex);
+
+    // set the bit at the specified position to 1
+    bitMap[byteIndex] = bitMap[byteIndex] | mask; 
 }
 
 // set the bit corresponding to blockNum to 0 (mark the block as free)
@@ -121,10 +127,14 @@ void setBitFree(unsigned int blockNum)
     unsigned int byteIndex = blockNum / 8;
     unsigned int bitIndex = blockNum % 8;
 
-    unsigned char mask = ~(1 << (7 - bitIndex)); // create a 1-byte mask with 0 at the bit position
-                                                 //  1 for other bits
 
-    bitMap[byteIndex] = bitMap[byteIndex] & mask; // set the bit at the specified position to 0
+    // create a 1-byte mask with 0 at the bit position
+    // 1 for other bits
+
+    unsigned char mask = ~(1 << (7 - bitIndex)); 
+
+    // set the bit at the specified position to 0
+    bitMap[byteIndex] = bitMap[byteIndex] & mask; 
 }
 
 // Check if the bit corresponding to blockNum is used

@@ -8,15 +8,16 @@
  *
  * File: fsParse.h
  *
- * Description: The 'fsParse.h' header file contains essential structures and
- *              function prototypes related to path parsing, directory management,
- *              and file system initialization. It defines the 'ppInfo' structure,
- *              which encapsulates details about parsed path elements,
- *              including the parent directory, element index, and name.
- *              This header declares functions like 'parsePath' to parse a path string
- *              and update path parsing information, 'findEntryInDir' to locate entries within a directory,
- *              'loadDir' to load a specified directory from disk into memory,
- *              and 'loadRootDir' to load the root directory during system initialization.
+ * Description: 
+ * The 'fsParse.h' header file contains essential structures and function 
+ * prototypes related to path parsing, directory management, and file system 
+ * initialization. It defines the 'ppInfo' structure, which encapsulates details 
+ * about parsed path elements,including the parent directory, element index, 
+ * and name. This header declares functions like 'parsePath' to parse a path 
+ * string and update path parsing information, 'findEntryInDir' to locate 
+ * entries within a directory, 'loadDir' to load a specified directory from 
+ * disk into memory, and 'loadRootDir' to load the root directory during system
+ * initialization.
  **************************************************************/
 
 #ifndef _FS_PARSE_H
@@ -34,7 +35,9 @@ extern DE *rootDir; // root directory
 extern DE *cwd;     // current working directory
 extern ppInfo *ppi; // parse path info
 
-// 0: valid path, -1: invalid path or ppi, -2: Dir not found, or parent is not a dir
+// 0: valid path, 
+// -1: invalid path or ppi, 
+// -2: Dir not found, or parent is not a dir
 // Take a path cstring and parse the info
 int parsePath(const char *path, ppInfo *ppi);
 

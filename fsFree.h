@@ -8,12 +8,14 @@
  *
  * File: fsFree.h
  *
- * Description: This header file contains declarations for managing free space
- *              within the basic file system. It provides methods for initializing
- *              and loading free space, setting bits to mark blocks as used or free,
- *              finding free blocks, and allocating contiguous or extent-based blocks.
- *              The functions defined here enable the efficient handling of block allocation and deallocation,
- *              contributing to the effective management of available free space in the file system.
+ * Description: 
+ * This header file contains declarations for managing free space
+ * within the basic file system. It provides methods for initializing
+ * and loading free space, setting bits to mark blocks as used or free,
+ * finding free blocks, and allocating contiguous or extent-based blocks.
+ * The functions defined here enable the efficient handling of block allocation 
+ * and deallocation, contributing to the effective management of available 
+ * free space in the file system.
  **************************************************************/
 #ifndef _FS_FREE_H
 #define _FS_FREE_H
@@ -54,27 +56,5 @@ int allocBlocksCont(int blocksNeeded);
 
 int releaseBlocksCont(int start, int count); // not needed for M1
 
-////    Extent      ////
-////    Prototypes from Lecture
-////    TODO after M1
-
-// definition of an extent
-typedef struct extent
-{
-    int start;
-    int count;
-} extent, *pextent;
-
-// // allocateBlocks is how you obtain disk blocks.
-// // the first parameter is the number of blocks the caller requires
-// // the second parameter is the minimum number of blocks in any one extent
-// // except the last one.
-// // it returns an array of extent
-extent *allocateBlocksExt(int required, int minPerExtent);
-
-// // This function returns blocks to the freespace system. If the caller wants
-// //  to free all the blocks in a series of extents, they should loop each extent
-// //  calling releaseBlocks for each extent
-void releaseBlockInOneExt(int start, int count);
 
 #endif

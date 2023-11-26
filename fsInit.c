@@ -9,14 +9,16 @@
  * File: fsInit.c
  * This file is where you will start and initialize your system
  *
- * Description: The 'fsInit.c' file serves as the starting point for initializing the file system.
- * 				It begins by determining if the volume needs formatting based on the VCB's signature.
- * 				If initialization is required, it sets up the VCB, initializes free space,
- * 				and creates the root directory. Otherwise, it reloads the necessary data, such as free space information.
- * 				It manages the initialization of various file system components,
- * 				including the VCB, free space, root directory, and current working directory.
- * 				Additionally, this file contains functions to exit the file system cleanly by freeing allocated memory.
- *
+ * Description: 
+ * The 'fsInit.c' file serves as the starting point for initializing the file 
+ * system. It begins by determining if the volume needs formatting based on 
+ * the VCB's signature. If initialization is required, it sets up the VCB, 
+ * initializes free space, and creates the root directory. Otherwise, it 
+ * reloads the necessary data, such as free space information. It manages 
+ * the initialization of various file system components, including the VCB, 
+ * free space, root directory, and current working directory. Additionally,
+ * this file contains functions to exit the file system cleanly by freeing 
+ * allocated memory.
  *
  **************************************************************/
 
@@ -69,25 +71,18 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 
 		// initialize the values in vcb
 		vcb->signature = SIGNATURE;
-		// printf("vcb->signature: %ld\n\n", vcb->signature);
+		
 
 		vcb->numberOfBlocks = numberOfBlocks;
 		vcb->blockSize = blockSize;
 
 		// initialize free space
 		vcb->bitMapLocation = initFreeSpace(numberOfBlocks, blockSize);
-		// printf("\n------ OUTSIDE initFreeSpace() ------\n\n\n");
-		// printf("vcb->bitMapLocation: %d\n\n", vcb->bitMapLocation);
-		// printf("After init free space \n");
-		// printf("bitMap[0]: %x\n", bitMap[0]);
-		// printf("bitMap[1]: %x\n", bitMap[1]);
-		// printf("isBitUsed[1], 0 free, 1 used: %d\n", isBitUsed(1));
+	
 
 		// initialize root directory
 		vcb->rootDirLocation = initDir(DEFAULT_DE_COUNT, NULL, blockSize);
-		// printf("\n------ OUTSIDE THE initDir function------\n\n\n");
-		// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
-		// printf("isBitUsed[6], 0 free, 1 used: %d\n", isBitUsed(6));
+		
 
 		// write vcb to block 0
 		if (LBAwrite(vcb, 1, 0) != 1)
@@ -117,20 +112,6 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	{
 		printf("rootDir[%d] is: %s\n", i, rootDir[i].fileName);
 	}
-
-	// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
-
-	// printf("\nIn fsInit.c, rootDir[0].fileName: %s\n", rootDir[0].fileName);
-	// printf("\n-------------------------------------------------\n");
-
-	// char path[] = "/test1";
-	// int checkVal = parsePath(path, ppi);
-	// printf("\nAfter parsePath()\n");
-	// printf("Return value of parsePath: %d\n", checkVal);
-	// printf("Parent dir: %s\n", ppi->parent->fileName);
-	// printf("Index: %d\n", ppi->index);
-	// printf("Last element: %s\n", ppi->lastElement);
-	// printf("parent[index].isDir: %d\n", ppi->parent[ppi->index].isDir);
 
 	return 0;
 }

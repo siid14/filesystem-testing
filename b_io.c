@@ -1,5 +1,5 @@
 /**************************************************************
- * Class:  CSC-415-0# Fall 2021
+ * Class:  CSC-415-01 Fall 2021
  * Names: Sidney Thomas, Hoang-Anh Tran, Ruxue Jin, Yee-Tsing Yang
  * Student IDs: 918656419, 922617784, 923092817, 922359864
  * GitHub Name: siid14, htran31, RuxueJ, Y-Y1Q
@@ -8,13 +8,14 @@
  *
  * File: b_io.c
  *
- * Description: This header file implements a basic file system handling file operations
- *              such as opening, seeking, reading, writing, and closing files.
- *              Functions like `b_open`, `b_seek`, `b_write`, `b_read`, and `b_close`
- *              manage file descriptors, positions, data I/O, and file closure.
- *              The `b_init` function initializes the system, `b_getFCB` gets free File Control Blocks,
- *              and `b_fcb` defines the file control block structure.
- *              The implementation utilizes system libraries for I/O, memory, and system calls.
+ * Description: 
+ * This header file implements a basic file system handling file operations
+ * such as opening, seeking, reading, writing, and closing files. Functions
+ * like `b_open`, `b_seek`, `b_write`, `b_read`, and `b_close` manage file 
+ * descriptors, positions, data I/O, and file closure. The `b_init` function
+ * initializes the system, `b_getFCB` gets free File Control Blocks, and 
+ * `b_fcb` defines the file control block structure. The implementation 
+ * utilizes system libraries for I/O, memory, and system calls.
  **************************************************************/
 #include <stdio.h>
 #include <unistd.h>
@@ -74,21 +75,24 @@ b_io_fd b_getFCB()
 	{
 		if (fcbArray[i].buf == NULL)
 		{
-			return i; // Not thread safe (But do not worry about it for this assignment)
+			// Not thread safe (But do not worry about it for this assignment)
+			return i; 
 		}
 	}
 	return (-1); // all in use
 }
 
 /* File Open Function
- this function initializes a File Control Block (FCB) for the specified file and returns a file descriptor
- it opens the file with the provided filename and flags, allocates a buffer for file I/O, and tracks the current file position
+ this function initializes a File Control Block (FCB) for the specified file 
+ and returns a file descriptor. It opens the file with the provided filename
+ and flags, allocates a buffer for file I/O, and tracks the current file position
  parameters:
  - filename: The name of the file to open
  - flags: Flags indicating the file access mode (O_RDONLY, O_WRONLY, or O_RDWR)
  returns:
  - a file descriptor (file handle) if the operation is successful
- - returns -1 if there are no available FCBs, errors opening the file, or memory allocation issues.
+ - returns -1 if there are no available FCBs, errors opening the file, or memory 
+ allocation issues.
  */
 b_io_fd b_open(char *filename, int flags)
 {
@@ -152,13 +156,13 @@ b_io_fd b_open(char *filename, int flags)
 			int freeIndex = findFreeDE(ppi->parent);
 			if (freeIndex == -1)
 			{
-				printf("Error: no free entry in parent directory [%s]\n", ppi->parent[0].fileName);
+				printf("Error: no free entry in parent directory [%s]\n", 
+						ppi->parent[0].fileName);
 				return (-1);
 			}
-			// printf("b_open indexInParent: %d\n", fcbArray[returnFd].indexInParent);
+			
 			fcbArray[returnFd].indexInParent = freeIndex;
-			// printf("b_open indexInParent: %d\n", fcbArray[returnFd].indexInParent);
-			// printf("b_open returnFd: %d\n", returnFd);
+		
 
 			// Create DE info
 
@@ -189,17 +193,19 @@ b_io_fd b_open(char *filename, int flags)
 		{
 			fcbArray[returnFd].fileInfo->location = ppi->parent[ppi->index].location;
 			fcbArray[returnFd].fileInfo->size = ppi->parent[ppi->index].size;
-			fcbArray[returnFd].numOfBlocks = (fcbArray[returnFd].fileInfo->size + (vcb->blockSize - 1)) / vcb->blockSize;
+			fcbArray[returnFd].numOfBlocks = 
+			(fcbArray[returnFd].fileInfo->size + (vcb->blockSize - 1)) / vcb->blockSize;
 		}
 	}
 
-	// printf("\n\n---- b_open() finished ----\n\n");
+	
 	return (returnFd); // all set
 }
 
 /* File Seek Function
- moves the file pointer inside an open file to a new position based on 'whence' and 'offset'
- it updates the file pointer (index) in the File Control Block (FCB) and returns the new position
+ moves the file pointer inside an open file to a new position based on 'whence' 
+ and 'offset'. It updates the file pointer (index) in the File Control Block (FCB) 
+ and returns the new position.
  parameters:
    - fd: File descriptor
    - offset: Offset to move the file pointer
@@ -348,7 +354,8 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	{
 		// printf("[debug] inside part 2\n");
 		bytesWrite = LBAwrite(buffer + part1, numOfBlocksToWrite,
-							  fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+							  fcbArray[fd].currentBlock + 
+							  fcbArray[fd].fileInfo->location);
 		fcbArray[fd].currentBlock += numOfBlocksToWrite;
 		part2 = bytesWrite;
 	}
@@ -357,7 +364,8 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	{
 		// write the buf from part1, and then refill
 		bytesWrite = LBAwrite(fcbArray[fd].buf, 1,
-							  fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+							  fcbArray[fd].currentBlock + 
+							  fcbArray[fd].fileInfo->location);
 
 		fcbArray[fd].currentBlock += 1;
 
@@ -371,7 +379,8 @@ int b_write(b_io_fd fd, char *buffer, int count)
 
 		if (part3 > 0)
 		{
-			memcpy(fcbArray[fd].buf + fcbArray[fd].index, buffer + part1 + part2, part3);
+			memcpy(fcbArray[fd].buf + fcbArray[fd].index, 
+					buffer + part1 + part2, part3);
 			LBAwrite(fcbArray[fd].buf, 1,
 					 fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
 			fcbArray[fd].index = fcbArray[fd].index + part3;
@@ -386,13 +395,14 @@ int b_write(b_io_fd fd, char *buffer, int count)
 // Interface to read a buffer
 
 // Filling the callers request is broken into three parts
-// Part 1 is what can be filled from the current buffer, which may or may not be enough
-// Part 2 is after using what was left in our buffer there is still 1 or more block
-//        size chunks needed to fill the callers request.  This represents the number of
-//        bytes in multiples of the blocksize.
-// Part 3 is a value less than blocksize which is what remains to copy to the callers buffer
-//        after fulfilling part 1 and part 2.  This would always be filled from a refill
-//        of our buffer.
+// Part 1 is what can be filled from the current buffer, which may or may not 
+// 		be enough
+// Part 2 is after using what was left in our buffer there is still 1 or more 
+// 		block size chunks needed to fill the callers request.  This represents the 
+// 		number of bytes in multiples of the blocksize.
+// Part 3 is a value less than blocksize which is what remains to copy to the 
+// 		callers buffer after fulfilling part 1 and part 2.  This would always 
+// 		be filled from a refill of our buffer.
 //  +-------------+------------------------------------------------+--------+
 //  |             |                                                |        |
 //  | filled from |  filled direct in multiples of the block size  | filled |
@@ -404,10 +414,18 @@ int b_write(b_io_fd fd, char *buffer, int count)
 //  +-------------+------------------------------------------------+--------+
 int b_read(b_io_fd fd, char *buffer, int count)
 {
-	int bytesRead;			 // Number of bytes read from the file
-	int bytesReturned;		 // Total number of bytes returned as the result of b_read
-	int part1, part2, part3; // Variables to manage the data reading process in segments
-	int copiedBlocks;		 // Number of blocks to be copied during data reading to control the reading process when data spans across multiple blocks
+	// Number of bytes read from the file
+	int bytesRead;	
+
+	// Total number of bytes returned as the result of b_read		 
+	int bytesReturned;	
+
+	// Variables to manage the data reading process in segments	 
+	int part1, part2, part3; 
+
+	// Number of blocks to be copied during data reading to control the reading 
+	// process when data spans across multiple blocks
+	int copiedBlocks;		 
 	int remain;
 
 	if (startup == 0)
@@ -434,7 +452,8 @@ int b_read(b_io_fd fd, char *buffer, int count)
 
 	remain = fcbArray[fd].buflen - fcbArray[fd].index;
 
-	// Calculate the total number of bytes already delivered to track the number of bytes processed
+	// Calculate the total number of bytes already delivered to track the number 
+	// of bytes processed
 	int bytesDelivered = (fcbArray[fd].currentBlock * vcb->blockSize) - remain;
 
 	// Check if the requested count exceeds the file size
@@ -449,7 +468,8 @@ int b_read(b_io_fd fd, char *buffer, int count)
 	// Part 2 - The data reads from additional blocks
 	// Part 3 - The remaining part of data reads from the buffer
 
-	// Determine if enough data is available in the buffer to fulfill the requested count of bytes
+	// Determine if enough data is available in the buffer to fulfill the requested 
+	// count of bytes
 	if (remain >= count)
 	{
 		part1 = count; // Count is completely buffered
@@ -460,7 +480,9 @@ int b_read(b_io_fd fd, char *buffer, int count)
 	else
 	{
 		part1 = remain;			// Read from the buffer
-		part3 = count - remain; // Additional data needed beyond the buffer if part 1 is not enough
+
+		// Additional data needed beyond the buffer if part 1 is not enough
+		part3 = count - remain; 
 
 		// Calculate the number of blocks to copy for part2
 		copiedBlocks = part3 / vcb->blockSize;
@@ -481,7 +503,8 @@ int b_read(b_io_fd fd, char *buffer, int count)
 	if (part2 > 0)
 	{
 		// Use LBAread to read data from storage and store it in the user's buffer
-		bytesRead = LBAread(buffer + part1, copiedBlocks, fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+		bytesRead = LBAread(buffer + part1, copiedBlocks, 
+					fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
 		// Update the current block pointer to track the position in the file
 		fcbArray[fd].currentBlock += copiedBlocks;
 		// Update part2 based on the number of bytes read
@@ -491,7 +514,8 @@ int b_read(b_io_fd fd, char *buffer, int count)
 	// If need to refill the buffer to copy more bytes to the user
 	if (part3 > 0)
 	{
-		bytesRead = LBAread(fcbArray[fd].buf, 1, fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
+		bytesRead = LBAread(fcbArray[fd].buf, 1, 
+					fcbArray[fd].currentBlock + fcbArray[fd].fileInfo->location);
 		bytesRead = bytesRead * vcb->blockSize;
 		fcbArray[fd].currentBlock += 1;
 
@@ -507,7 +531,8 @@ int b_read(b_io_fd fd, char *buffer, int count)
 
 		if (part3 > 0)
 		{
-			memcpy(buffer + part1 + part2, fcbArray[fd].buf + fcbArray[fd].index, part3);
+			memcpy(buffer + part1 + part2, fcbArray[fd].buf + fcbArray[fd].index, 
+			       part3);
 			// Update the index to the next unread data
 			fcbArray[fd].index = fcbArray[fd].index + part3;
 		}
@@ -527,8 +552,6 @@ int b_close(b_io_fd fd)
 
 	DE *tempDir = loadDirLocation(fcbArray[fd].parentLocation);
 
-	// printf("b_close indexInParent: %d\n", fcb->indexInParent);
-	// printf("b_ returnFd: %d\n", fd);
 
 	// write unused buffer
 	if (fcbArray[fd].fileInfo->size > 0 && fcbArray[fd].index < vcb->blockSize)
