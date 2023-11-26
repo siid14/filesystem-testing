@@ -7,10 +7,16 @@
  * Project: Basic File System
  *
  * File: fsInit.c
- *
- * Description: Main driver for file system assignment.
- *
  * This file is where you will start and initialize your system
+ *
+ * Description: The 'fsInit.c' file serves as the starting point for initializing the file system.
+ * 				It begins by determining if the volume needs formatting based on the VCB's signature.
+ * 				If initialization is required, it sets up the VCB, initializes free space,
+ * 				and creates the root directory. Otherwise, it reloads the necessary data, such as free space information.
+ * 				It manages the initialization of various file system components,
+ * 				including the VCB, free space, root directory, and current working directory.
+ * 				Additionally, this file contains functions to exit the file system cleanly by freeing allocated memory.
+ *
  *
  **************************************************************/
 
@@ -26,7 +32,6 @@
 #include "fsFree.h"
 #include "fsParse.h"
 
-
 // initial number of directory entries in each directory
 #define DEFAULT_DE_COUNT 50
 #define MAX_PATH_LEN 4096
@@ -36,7 +41,7 @@ VCB *vcb;
 DE *rootDir; // root directory
 DE *cwd;	 // current working directory
 ppInfo *ppi; // parse path info
-char* currentPath;
+char *currentPath;
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
@@ -103,19 +108,15 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	cwd = loadRootDir(DEFAULT_DE_COUNT);
 	ppi = malloc(sizeof(ppInfo));
 	currentPath = malloc(MAX_PATH_LEN + 1);
-	strcpy(currentPath,"/");
-
-	
-
+	strcpy(currentPath, "/");
 
 	printf("\n------------------TEST-------------------------------\n");
-	 
-	//Test md, rm, pwd
-	for( int i = 0; i<7; i++)
+
+	// Test md, rm, pwd
+	for (int i = 0; i < 7; i++)
 	{
 		printf("rootDir[%d] is: %s\n", i, rootDir[i].fileName);
 	}
-
 
 	// printf("vcb->rootDirLocation: %d\n", vcb->rootDirLocation);
 
@@ -150,7 +151,7 @@ void exitFileSystem()
 
 	free(ppi);
 	ppi = NULL;
-	
+
 	free(currentPath);
 	currentPath = NULL;
 

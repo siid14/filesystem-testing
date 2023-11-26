@@ -8,10 +8,23 @@
  *
  * File: fsParse.c
  *
+<<<<<<< HEAD
  * Description: 
  *
  *
  *
+=======
+ * Description: The 'fsParse.c' file contains functions for parsing paths
+ *              and managing directory entries in the file system.
+ *              The 'parsePath' function takes a path string, parses its components,
+ *              and updates the path parsing information (ppInfo).
+ *              It handles the process of identifying directories and elements within the path,
+ *              validating the path's existence, and updating the ppInfo structure accordingly.
+ *              Additionally, the 'findEntryInDir' and 'loadDir' functions facilitate locating entries within a directory
+ *              and loading directory information from disk, respectively.
+ *              Furthermore, the 'loadRootDir' function is responsible
+ *              for loading the root directory during system initialization.
+>>>>>>> 719ec8fee50835440bb02527941aa5589b679177
  **************************************************************/
 #include <stdio.h>
 #include <stdlib.h>

@@ -6,11 +6,17 @@
  *
  * File: mfs.h
  *
- * Description:
- *	This is the file system interface.
- *	This is the interface needed by the driver to interact with
- *	your filesystem.
- *
+ * Description: The 'mfs.h' header file defines structures and functions essential for managing file system operations.
+ *              It contains structures such as 'DE' (Directory Entry) and 'VCB' (Volume Control Block)
+ *              that represent file metadata and volume information, respectively.
+ *              This header provides functionalities for directory manipulation, including creating
+ *              and removing directories ('fs_mkdir' and 'fs_rmdir'), iterating
+ *              through directories ('fs_opendir', 'fs_readdir', and 'fs_closedir'),
+ *              as well as miscellaneous operations like getting the current working directory ('fs_getcwd'),
+ *              setting the current directory ('fs_setcwd'), file and directory checks ('fs_isFile', 'fs_isDir'),
+ *              deletion ('fs_delete'), moving files ('fs_move'), and obtaining file statistics ('fs_stat').
+ *              Additionally, it defines structures like 'fs_diriteminfo'
+ *              and 'fs_stat' used for providing directory entry information and file statistics, respectively.
  **************************************************************/
 #ifndef _MFS_H
 #define _MFS_H
@@ -85,8 +91,8 @@ typedef struct
   /*****TO DO:  Fill in this structure with what your open/read directory needs  *****/
   unsigned short d_reclen;         /* length of this record */
   unsigned short dirEntryPosition; /* which directory entry position, like file pos */
-  DE *	directory;			/* Pointer to the loaded directory you want to iterate */
-  struct fs_diriteminfo *di; /* Pointer to the structure you return from read */
+  DE *directory;                   /* Pointer to the loaded directory you want to iterate */
+  struct fs_diriteminfo *di;       /* Pointer to the structure you return from read */
 } fdDir;
 
 // Key directory functions
@@ -105,7 +111,7 @@ int fs_isFile(char *filename); // return 1 if file, 0 otherwise
 int fs_isDir(char *pathname);  // return 1 if directory, 0 otherwise
 int fs_delete(char *filename); // removes a file
 
-int fs_move(char *src, char* dest); // moves a file
+int fs_move(char *src, char *dest); // moves a file
 
 // This is the strucutre that is filled in from a call to fs_stat
 struct fs_stat

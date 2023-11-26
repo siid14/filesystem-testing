@@ -8,8 +8,11 @@
  *
  * File: fsDir.c
  *
- * Description:  init directory.
- *
+ * Description: Handles directory operations in the basic file system.
+ *              Provides functions for initializing, creating, deleting directories,
+ *              checking path types (directory or file), traversing directories, and managing directory entries.
+ *              Includes operations to move files between directories
+ *              and utility functions for directory management within the file system.
  **************************************************************/
 
 #include <string.h>
@@ -410,7 +413,8 @@ int fs_isDir(char *pathname)
             return 1;
         }
 
-        if (ppi->parent[ppi->index].isDir == 0)
+        // Case: does not exit, or is a file
+        if (ppi->parent[ppi->index].isDir == 0 || ppi->index == -1)
         {
             // printf("\nThis file is not a directory\n");
             return 0;
@@ -439,8 +443,8 @@ int fs_isFile(char *filename)
     }
     else
     {
-        // Case: path is "/"
-        if (ppi->lastElement == NULL)
+        // Case: path is "/", or does not exist
+        if (ppi->lastElement == NULL || ppi->index == -1)
         {
             return 0;
         }
@@ -836,17 +840,18 @@ int fs_move(char *src, char *dest)
 
     parsePath(dest, ppi);
     DE *destDir;
+    int destDirLocation;
 
     if (ppi->lastElement == NULL) // Case: path is "/"
     {
         destDir = loadRootDir(DEFAULT_DE_COUNT);
+        destDirLocation = ppi->parent[0].location;
     }
     else
     {
         destDir = loadDir(&ppi->parent[ppi->index]);
+        destDirLocation = ppi->parent[ppi->index].location;
     }
-
-    int destDirLocation = ppi->parent[0].location;
 
     if (srcDirLocation == destDirLocation)
     {
@@ -858,7 +863,7 @@ int fs_move(char *src, char *dest)
         return 0;
     }
 
-    int freeIndex = findFreeDE(&ppi->parent[ppi->index]);
+    int freeIndex = findFreeDE(destDir);
 
     if (freeIndex == -1)
     {
@@ -872,7 +877,7 @@ int fs_move(char *src, char *dest)
 
     // At this point, it is okay to move src file to dest directory
 
-    // Update DE info at src
+    // Claer DE info at src
     markUnusedDE(&srcDir[srcIndex]);
     writeDir(srcDir);
 

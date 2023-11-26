@@ -8,10 +8,11 @@
  *
  * File: fsFree.c
  *
- * Description: Implementation for free space management
- *
- *
- *
+ * Description: This file implements functions for managing free space within the basic file system.
+ *              It includes methods for initializing free space, loading free space from disk,
+ *              setting bits to mark blocks as used or free, finding free blocks, and allocating contiguous
+ *              or extent-based blocks. The functions here enable the system to handle block allocation,
+ *              deallocation, and tracking of available free space efficiently within the file system.
  **************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -222,69 +223,82 @@ int allocBlocksCont(int blocksNeeded)
     }
 }
 
+extent *allocateBlocksExt(int required, int minPerExtent)
+{
 
-extent *allocateBlocksExt(int required, int minPerExtent){
-
-    if(required <= minPerExtent){
+    if (required <= minPerExtent)
+    {
         int startBlockNum = allocBlocksCont(minPerExtent);
-        if(startBlockNum == -1){
+        if (startBlockNum == -1)
+        {
             printf("\nNot enough free blocks to allocate.\n");
             return NULL;
-        }else{
+        }
+        else
+        {
             // only one extent is enough to hold the blocks info
-            extent * ext = malloc(sizeof(extent));
-            if(ext == NULL){
+            extent *ext = malloc(sizeof(extent));
+            if (ext == NULL)
+            {
                 printf("error: failed to allocate extent");
                 return NULL;
             }
             ext->start = startBlockNum;
             ext->count = required;
         }
-    }else{
-        int extentNumber = required/minPerExtent + 1;
+    }
+    else
+    {
+        int extentNumber = required / minPerExtent + 1;
 
         // add last extent with start and count = 0 to indicate the end of extent table
-       
-        extent * ext = malloc((extentNumber+1) * sizeof(extent));
-        if(ext == NULL){
+
+        extent *ext = malloc((extentNumber + 1) * sizeof(extent));
+        if (ext == NULL)
+        {
             printf("error: failed to allocate extent");
             return NULL;
         }
         int startBlockNum;
         // for the first extentNumber-1 extent, count is minPerExtent
-        for(int i = 0; i < extentNumber-1; i++){
-            startBlockNum= allocBlocksCont(minPerExtent);
-            if(startBlockNum == -1){
-            printf("\nerror: Not enough free blocks to allocate.\n");
-            return NULL;
-            ext[i].start = startBlockNum;
-            ext[i].count = minPerExtent;
+        for (int i = 0; i < extentNumber - 1; i++)
+        {
+            startBlockNum = allocBlocksCont(minPerExtent);
+            if (startBlockNum == -1)
+            {
+                printf("\nerror: Not enough free blocks to allocate.\n");
+                return NULL;
+                ext[i].start = startBlockNum;
+                ext[i].count = minPerExtent;
+            }
+            // for the last extentNumberth extent, count is the remaining block
+            startBlockNum = allocBlocksCont(minPerExtent);
+            if (startBlockNum == -1)
+            {
+                printf("\nNot enough free blocks to allocate.\n");
+                return NULL;
+                ext[extentNumber - 1].start = startBlockNum;
+                ext[extentNumber - 1].count = required - minPerExtent * (extentNumber - 1);
+
+                // the last extent indicate the end of the array
+                startBlockNum = allocBlocksCont(minPerExtent);
+                if (startBlockNum == -1)
+                {
+                    printf("\nNot enough free blocks to allocate.\n");
+                    return NULL;
+                    ext[extentNumber].start = 0;
+                    ext[extentNumber].count = 0;
+                }
+            }
+            return ext;
         }
-        // for the last extentNumberth extent, count is the remaining block
-        startBlockNum= allocBlocksCont(minPerExtent);
-        if(startBlockNum == -1){
-            printf("\nNot enough free blocks to allocate.\n");
-            return NULL;
-        ext[extentNumber-1].start = startBlockNum;
-        ext[extentNumber-1].count = required - minPerExtent * (extentNumber-1);
-        
-        // the last extent indicate the end of the array
-        startBlockNum= allocBlocksCont(minPerExtent);
-        if(startBlockNum == -1){
-            printf("\nNot enough free blocks to allocate.\n");
-            return NULL;
-        ext[extentNumber].start = 0;
-        ext[extentNumber].count = 0;
-        }
-        }
-        return ext;
-    }
     }
 }
 
-
-void releaseBlockInOneExt(int start, int count){
-    for(int i = 0; i < count; i ++){
+void releaseBlockInOneExt(int start, int count)
+{
+    for (int i = 0; i < count; i++)
+    {
         setBitFree(start + i);
     }
 }
