@@ -64,7 +64,7 @@ int parsePath(const char *path, ppInfo *ppi)
     int index;
 
     if (mutablePath == NULL || ppi == NULL)
- 
+
     {
         printf("Error: invalid path or ppi in parsePath()");
         return (-1);
@@ -83,7 +83,6 @@ int parsePath(const char *path, ppInfo *ppi)
 
     parent = startDir;
     token1 = strtok_r(mutablePath, "/", &savePtr);
-   
 
     if (token1 == NULL)
     {
