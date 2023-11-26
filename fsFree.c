@@ -188,12 +188,45 @@ int getFreeBlockNum()
 }
 
 
-
-
-void releaseBlockInOneExt(int start, int count)
+int allocBlocksCont(int blocksNeeded)
 {
-    for (int i = 0; i < count; i++)
+
+    int startBlockNum = getFreeBlockNum(bitMap);
+
+    int countBlocksCont = 0; // to track how many contiguous free blocks
+
+    // Check if there are enough free blocks for cont. allocation
+    for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
     {
-        setBitFree(start + i);
+        if (isBitUsed(i) == 0)
+        {
+            countBlocksCont++;
+        }
+    }
+
+    // Enough contiguous free blocks
+    if (countBlocksCont == blocksNeeded)
+    {
+        // Mark the bits corresponding to blockNum as used
+        for (int i = startBlockNum; i < startBlockNum + blocksNeeded; i++)
+        {
+            setBitUsed(i);
+        }
+
+        // write the updated bitmap to disk, and check error
+        int checkVal = LBAwrite(bitMap, bitMapSizeBlocks, 1);
+
+        if (checkVal != bitMapSizeBlocks)
+        {
+            printf("\nLBAwrite() failed in allocBlocksCont()\n");
+            return -1;
+        }
+
+        return startBlockNum;
+    }
+    else
+    {
+        printf("\nNot enough free blocks to allocate contiguously\n");
+        return -1;
     }
 }
