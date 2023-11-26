@@ -8,7 +8,7 @@
  *
  * File: fsParse.c
  *
- * Description:
+ * Description: 
  *
  *
  *
@@ -59,6 +59,7 @@ int parsePath(const char *path, ppInfo *ppi)
     int index;
 
     if (mutablePath == NULL || ppi == NULL)
+ 
     {
         printf("Error: invalid path or ppi in parsePath()");
         return (-1);
@@ -77,6 +78,7 @@ int parsePath(const char *path, ppInfo *ppi)
 
     parent = startDir;
     token1 = strtok_r(mutablePath, "/", &savePtr);
+   
 
     // printf("parent[0]: %s\n", parent[0].fileName);
     // printf("token1: %s\n", token1);
