@@ -170,7 +170,7 @@ int fs_setcwd(char *pathname)
      
             return -1;
         }
-        else
+        else // Good to update cwd now
         {
             free(cwd);
             cwd = NULL;
@@ -232,10 +232,9 @@ char *cleanPath(char *path)
         token = strtok(NULL, "/");
     }
 
-
+    // Case: path is back to "/"
     if (i == 0)
     {
-     
         char *result = (char *)malloc(2);
         if (result != NULL)
         {
@@ -292,7 +291,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
 
     if (result == 0)
     {
-
+        // Make an new directory if it does not exist, so duplicate can be avoided
         if (ppi->index == -1)
         {
             int newDirLocation = initDir(DEFAULT_DE_COUNT, ppi->parent, vcb->blockSize);
@@ -318,7 +317,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
         else
         {
             // lastElement is already in the parent
-            printf("\n%s is already exsited............\n", ppi->lastElement);
+            printf("\n%s already exsited............\n", ppi->lastElement);
             return -1;
         }
     }
@@ -690,14 +689,14 @@ fdDir *fs_opendir(const char *pathname)
         return fdd;
     }
 
-   
-
+   // Check for valid path
     if (checkVal != 0 || ppi->index == -1 || ppi->parent[ppi->index].isDir != 1)
     {
         printf("Invalid directory path\n");
         return NULL;
     }
 
+    // Load the directory to process
     DE *temp = loadDir(&ppi->parent[ppi->index]);
 
     if (temp == NULL)
