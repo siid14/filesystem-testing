@@ -33,6 +33,7 @@
 #include "fsLow.h"
 
 #define MAXFCBS 20
+#define EXTRA_BLOCK 100
 
 typedef struct b_fcb
 {
@@ -191,14 +192,18 @@ b_io_fd b_open(char *filename, int flags)
 		}
 		else
 		{
+			if (flags & O_APPEND)
+			{
+				fcbArray[returnFd].index = b_seek(returnFd, 0, SEEK_END);
+			}
+
 			fcbArray[returnFd].fileInfo->location = ppi->parent[ppi->index].location;
 			fcbArray[returnFd].fileInfo->size = ppi->parent[ppi->index].size;
-			fcbArray[returnFd].numOfBlocks = 
+			fcbArray[returnFd].numOfBlocks =
 			(fcbArray[returnFd].fileInfo->size + (vcb->blockSize - 1)) / vcb->blockSize;
 		}
 	}
 
-	
 	return (returnFd); // all set
 }
 
@@ -269,7 +274,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	int bytesReturned;			  // what we will return
 	int part1, part2, part3;	  // holds the three potential bytes
 	int numOfBlocksToWrite;		  // holds the number of whole blocks
-	int remainingBytesInMyBuffer; // holds how many bytes remaining in the buffer
+	int remain; // holds how many bytes remaining in the buffer
 
 	if (startup == 0)
 		b_init(); // Initialize our system
@@ -287,18 +292,21 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	}
 
 	//  check for write permission
-	if ((fcbArray[fd].accessMode & O_WRONLY) != O_WRONLY)
+	if ((fcbArray[fd].accessMode & O_RDWR) != O_RDWR)
 	{
-		printf("ERROR: no permission to write\n");
-		return -1;
+		if ((fcbArray[fd].accessMode & O_WRONLY) != O_WRONLY)
+		{
+			printf("ERROR: no permission to write\n");
+			return -1;
+		}
 	}
 
-	off_t fileSize = b_seek(fd, 0, SEEK_END);
+	
 
 	// check if the current size is enough for count bytes
-	if (count > fcbArray[fd].fileInfo->size)
+	if (count + fcbArray[fd].fileInfo->size > fcbArray[fd].fileInfo->size)
 	{
-		int newFileSize = count;
+		int newFileSize = count + fcbArray[fd].fileInfo->size;
 		int newNumOfBlocks = (newFileSize + (vcb->blockSize - 1)) / vcb->blockSize;
 
 		// free old blocks that are not enough
@@ -319,12 +327,12 @@ int b_write(b_io_fd fd, char *buffer, int count)
 		fcbArray[fd].numOfBlocks = newNumOfBlocks;
 	}
 
-	// number of bytes available to copy from buffer
-	remainingBytesInMyBuffer = vcb->blockSize - fcbArray[fd].index;
+	// number of bytes available to write to buffer
+	remain = vcb->blockSize - fcbArray[fd].index;
 
 	// Part1 is the first copy of data which will be from the buffer
 	// it will be the lesser of the requested amount of the number
-	if (count <= remainingBytesInMyBuffer)
+	if (count <= remain)
 	{
 		part1 = count;
 		part2 = 0;
@@ -332,10 +340,10 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	}
 	else
 	{
-		part1 = remainingBytesInMyBuffer;
+		part1 = remain;
 
 		// part 1 is not enough
-		part3 = count - remainingBytesInMyBuffer;
+		part3 = count - remain;
 		numOfBlocksToWrite = part3 / vcb->blockSize;
 		part2 = numOfBlocksToWrite * vcb->blockSize;
 
@@ -388,6 +396,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	}
 
 	bytesReturned = part1 + part2 + part3;
+
 
 	return (bytesReturned); // Change this
 }
@@ -444,13 +453,18 @@ int b_read(b_io_fd fd, char *buffer, int count)
 	}
 
 	// Check if file is allowed to be read
-	if ((fcbArray[fd].accessMode & O_RDONLY) != O_RDONLY)
+	if ((fcbArray[fd].accessMode & O_RDWR) != O_RDWR)
 	{
-		printf("ERROR: No permission to read\n");
-		return -1;
+		if ((fcbArray[fd].accessMode & O_RDONLY) != O_RDONLY)
+		{
+			printf("ERROR: No permission to read\n");
+			return -1;
+		}
 	}
 
 	remain = fcbArray[fd].buflen - fcbArray[fd].index;
+
+	
 
 	// Calculate the total number of bytes already delivered to track the number 
 	// of bytes processed
@@ -538,6 +552,9 @@ int b_read(b_io_fd fd, char *buffer, int count)
 		}
 	}
 	bytesReturned = part1 + part2 + part3;
+
+	//printf("\n\nbytes read: %d\n",bytesReturned);
+
 	return bytesReturned;
 }
 
@@ -565,7 +582,6 @@ int b_close(b_io_fd fd)
 	}
 
 	// Update parent DE info
-
 	int indexInParent = fcbArray[fd].indexInParent;
 
 	strcpy(tempDir[indexInParent].fileName, fcbArray[fd].fileInfo->fileName);
@@ -584,6 +600,7 @@ int b_close(b_io_fd fd)
 
 	writeDir(tempDir);
 
+	// free memory resources assocaited with the fd
 	free(fcbArray[fd].buf);
 	fcbArray[fd].buf = NULL;
 
