@@ -33,7 +33,7 @@
 #include "fsLow.h"
 
 #define MAXFCBS 20
-#define EXTRA_BLOCK 100
+#define EXTRA_BLOCK 50
 
 typedef struct b_fcb
 {
@@ -48,7 +48,8 @@ typedef struct b_fcb
 	int currentBlock; // current block num
 	int numOfBlocks;  // num of blocks used by the file
 	int accessMode;	  // allowed permission for the file
-
+	int tempSize;	  // temporary size of file in b_write
+ 
 	int parentLocation; // the starting block num of parent directory
 	int indexInParent;	// The index of file in parent
 } b_fcb;
@@ -301,16 +302,24 @@ int b_write(b_io_fd fd, char *buffer, int count)
 		}
 	}
 
-	
+	// Allocate some temp blocks for write
+	if (fcbArray[fd].numOfBlocks == 0)
+	{
+		fcbArray[fd].fileInfo->location = allocBlocksCont(EXTRA_BLOCK);
+		fcbArray[fd].numOfBlocks = EXTRA_BLOCK;
+		fcbArray[fd].tempSize = fcbArray[fd].numOfBlocks * vcb->blockSize;
+	}
 
 	// check if the current size is enough for count bytes
-	if (count + fcbArray[fd].fileInfo->size > fcbArray[fd].fileInfo->size)
+	if (count + fcbArray[fd].fileInfo->size > fcbArray[fd].tempSize)
 	{
-		int newFileSize = count + fcbArray[fd].fileInfo->size;
-		int newNumOfBlocks = (newFileSize + (vcb->blockSize - 1)) / vcb->blockSize;
+		
+		int newNumOfBlocks = fcbArray[fd].numOfBlocks + EXTRA_BLOCK;
+		fcbArray[fd].tempSize = newNumOfBlocks * vcb->blockSize;
 
 		// free old blocks that are not enough
-		for (int i = fcbArray[fd].fileInfo->location; i < fcbArray[fd].numOfBlocks; i++)
+		for (int i = fcbArray[fd].fileInfo->location; 
+		i < fcbArray[fd].numOfBlocks + fcbArray[fd].fileInfo->location; i++)
 		{
 			setBitFree(i);
 		}
@@ -323,7 +332,6 @@ int b_write(b_io_fd fd, char *buffer, int count)
 		}
 
 		fcbArray[fd].fileInfo->location = newLocation;
-		fcbArray[fd].fileInfo->size = newFileSize;
 		fcbArray[fd].numOfBlocks = newNumOfBlocks;
 	}
 
@@ -396,6 +404,7 @@ int b_write(b_io_fd fd, char *buffer, int count)
 	}
 
 	bytesReturned = part1 + part2 + part3;
+	fcbArray[fd].fileInfo->size += bytesReturned;
 
 
 	return (bytesReturned); // Change this
@@ -579,6 +588,19 @@ int b_close(b_io_fd fd)
 		LBAwrite(temp, 1, fcbArray[fd].fileInfo->location + fcbArray[fd].currentBlock);
 		free(temp);
 		temp = NULL;
+	}
+
+	// Free unused blocks
+	int actualBlockUsed = (fcbArray[fd].fileInfo->size + vcb->blockSize - 1) / vcb->blockSize;
+
+	if (fcbArray[fd].numOfBlocks > actualBlockUsed)
+	{
+		int blockToFree = fcbArray[fd].numOfBlocks - actualBlockUsed;
+		int startBlock = fcbArray[fd].fileInfo->location + actualBlockUsed;
+		for (int i = startBlock; i < startBlock + blockToFree; i++)
+		{
+			setBitFree(i);
+		}
 	}
 
 	// Update parent DE info
