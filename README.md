@@ -1,6 +1,6 @@
-# File System Project
+## File System Project
 
-This project involves the development of a file system in C programming language. The file system is designed to meet specific requirements including volume formatting, directory management, file operations, and interfacing with low-level disk I/O functions.
+#This project involves the development of a file system in C programming language. The file system is designed to meet specific requirements including volume formatting, directory management, file operations, and interfacing with low-level disk I/O functions.
 
 Project Overview
 The goal of this project is to implement a functional file system, which includes formatting the volume, managing free space, maintaining directory structure, and supporting file operations such as creation, reading, writing, and deletion. The project is divided into three phases:
